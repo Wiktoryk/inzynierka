@@ -11,23 +11,30 @@ public enum CompanionState
 
 public class CompanionAI_FSM : MonoBehaviour
 {
+    
+    public bool isTurnComplete = false;
     public CompanionState currentState;
 
     void Update()
     {
-        switch (currentState)
+        if (!isTurnComplete)
         {
-            case CompanionState.Idle:
-                // Logic for Idle state
-                break;
-            case CompanionState.FollowPlayer:
-                // Logic to follow player
-                FollowPlayer();
-                break;
-            case CompanionState.Attack:
-                // Logic to attack enemies
-                AttackEnemy();
-                break;
+            switch (currentState)
+            {
+                case CompanionState.Idle:
+                    // Logic for Idle state
+                    break;
+                case CompanionState.FollowPlayer:
+                    // Logic to follow player
+                    FollowPlayer();
+                    break;
+                case CompanionState.Attack:
+                    // Logic to attack enemies
+                    AttackEnemy();
+                    break;
+            }
+
+            isTurnComplete = true;
         }
     }
 

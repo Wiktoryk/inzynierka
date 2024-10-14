@@ -10,11 +10,13 @@ public class Player : MonoBehaviour
     
     public float moveDistance = 0.64f;
     public float moveSpeed = 50f;
-
-    private bool isTurn = true;
+    
     private bool isMoving = false;
     private Vector3 targetPosition;
     private Vector3 previousPosition;
+    
+    public bool isTurnComplete = false;
+    private int movesLeft = 1;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -26,12 +28,16 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (isTurn && !isMoving)
+        if (!isTurnComplete && !isMoving && movesLeft > 0)
         {
             HandleMovementInput();
-            //transform.position = targetPosition;
         }
         MoveToTarget();
+        if (!isMoving && Input.GetKeyDown(KeyCode.Space))
+        {
+            isTurnComplete = true;
+            movesLeft = 1;
+        }
     }
     
     void HandleMovementInput()
@@ -59,6 +65,7 @@ public class Player : MonoBehaviour
         previousPosition = transform.position;
         targetPosition = transform.position + direction * moveDistance;
         isMoving = true;
+        movesLeft--;
     }
     
     void MoveToTarget()
