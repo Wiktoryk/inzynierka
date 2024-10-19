@@ -23,6 +23,7 @@ public class TurnManager : MonoBehaviour
     void Start()
     {
         currentTurn = TurnState.PlayerTurn;
+        enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
         UpdateTurnText();
     }
     

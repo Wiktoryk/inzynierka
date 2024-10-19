@@ -14,11 +14,18 @@ public class CompanionAI_FSM : MonoBehaviour
     
     public bool isTurnComplete = false;
     public CompanionState currentState;
+    private Rigidbody2D rb;
 
+    void Start()
+    {
+        currentState = CompanionState.Idle;
+        rb = GetComponent<Rigidbody2D>();
+    }
     void Update()
     {
         if (!isTurnComplete)
         {
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             switch (currentState)
             {
                 case CompanionState.Idle:
@@ -36,6 +43,7 @@ public class CompanionAI_FSM : MonoBehaviour
 
             isTurnComplete = true;
         }
+        rb.constraints = RigidbodyConstraints2D.FreezeAll;
     }
 
     void FollowPlayer()

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,7 +17,7 @@ public class Player : MonoBehaviour
     private Vector3 previousPosition;
     
     public bool isTurnComplete = false;
-    private int movesLeft = 1;
+    public int movesLeft = 2;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -31,12 +32,14 @@ public class Player : MonoBehaviour
         if (!isTurnComplete && !isMoving && movesLeft > 0)
         {
             HandleMovementInput();
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
         MoveToTarget();
         if (!isMoving && Input.GetKeyDown(KeyCode.Space))
         {
             isTurnComplete = true;
-            movesLeft = 1;
+            movesLeft = 2;
+            rb.constraints = RigidbodyConstraints2D.FreezeAll;
         }
     }
     
@@ -83,12 +86,12 @@ public class Player : MonoBehaviour
     }
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Wall"))
+        if (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Ally"))
         {
             transform.position = previousPosition;
             targetPosition = previousPosition;
             isMoving = false;
+            movesLeft++;
         }
     }
-    
 }
