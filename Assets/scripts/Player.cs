@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class Player : MonoBehaviour
     private Rigidbody2D rb;
     
     public float moveDistance = 0.64f;
-    public float moveSpeed = 50f;
+    public float moveSpeed = 64f;
     
     private bool isMoving = false;
     private Vector3 targetPosition;
@@ -18,6 +19,8 @@ public class Player : MonoBehaviour
     
     public bool isTurnComplete = false;
     public int movesLeft = 2;
+    
+    public int health = 50;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -93,5 +96,21 @@ public class Player : MonoBehaviour
             isMoving = false;
             movesLeft++;
         }
+    }
+    
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        if (health <= 0)
+        {
+            Debug.Log("Died");
+            RestartAfterDelay();
+        }
+    }
+    
+    IEnumerator RestartAfterDelay()
+    {
+        yield return new WaitForSeconds(1f);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

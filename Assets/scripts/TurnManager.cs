@@ -68,8 +68,14 @@ public class TurnManager : MonoBehaviour
     void HandleEnemyTurn()
     {
         bool allEnemiesComplete = true;
-        foreach (GameObject enemy in enemies)
+        for (int i = enemies.Count - 1; i >= 0; i--)
         {
+            GameObject enemy = enemies[i];
+            if (enemy == null)
+            {
+                enemies.RemoveAt(i);
+                continue;
+            }
             if (!enemy.GetComponent<EnemyAI>().isTurnComplete)
             {
                 allEnemiesComplete = false;

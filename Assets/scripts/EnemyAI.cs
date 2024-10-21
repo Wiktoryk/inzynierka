@@ -2,23 +2,148 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public enum EnemyState
+{
+    Idle,
+    Chase,
+    Attack
+}
+
+public enum CurrentTarget
+{
+    Player,
+    Companion
+}
+
 public class EnemyAI : MonoBehaviour
 {
     public bool isTurnComplete = false;
     public int health = 30;
+    
+    public EnemyState currentState;
+    public CurrentTarget currentTarget;
+    public Transform player;
+    public Transform companion;
+    public float attackRange = 1.5f;
+    public float moveSpeed = 15f;
+    public int movesLeft = 2;
+    private Rigidbody2D rb;
+    
+    void Start()
+    {
+        currentState = EnemyState.Idle;
+        rb = GetComponent<Rigidbody2D>();
+    }
     void Update()
     {
-        if (!isTurnComplete)
+        if (!isTurnComplete && movesLeft > 0)
         {
-            PerformAction();
-
-            isTurnComplete = true;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            switch (currentState)
+            {
+                case EnemyState.Idle:
+                    HandleIdleState();
+                    break;
+                case EnemyState.Chase:
+                    HandleChaseState();
+                    break;
+                case EnemyState.Attack:
+                    HandleAttackState();
+                    break;
+            }
+            if (movesLeft == 0)
+            {
+                isTurnComplete = true;
+                rb.constraints = RigidbodyConstraints2D.FreezeAll;
+                movesLeft = 2;
+            }
         }
     }
 
-    void PerformAction()
+    void HandleIdleState()
     {
-        
+        currentState = EnemyState.Chase;
+    }
+    
+    void HandleChaseState()
+    {
+        if (Vector3.Distance(transform.position, player.position) < Vector3.Distance(transform.position, companion.position))
+        {
+            currentTarget = CurrentTarget.Player;
+            MoveTowards(player.position);
+        }
+        else
+        {
+            currentTarget = CurrentTarget.Companion;
+            MoveTowards(companion.position);
+        }
+
+        if (Vector3.Distance(transform.position, player.position) <= attackRange)
+        {
+            currentState = EnemyState.Attack;
+        }
+        else if (Vector3.Distance(transform.position, companion.position) <= attackRange)
+        {
+            currentState = EnemyState.Attack;
+        }
+        movesLeft--;
+    }
+    
+    void HandleAttackState()
+    {
+        if (currentTarget == CurrentTarget.Player)
+        {
+            if (Vector3.Distance(transform.position, player.position) <= attackRange)
+            {
+                player.GetComponent<Player>().TakeDamage(10);
+                currentState = EnemyState.Idle;
+                movesLeft--;
+            }
+            else
+            {
+                currentState = EnemyState.Chase;
+            }
+        }
+        else
+        {
+            if (Vector3.Distance(transform.position, companion.position) <= attackRange)
+            {
+                companion.GetComponent<CompanionAI_FSM>().TakeDamage(10);
+                currentState = EnemyState.Idle;
+                movesLeft--;
+            }
+            else
+            {
+                currentState = EnemyState.Chase;
+            }
+        }
+    }
+    
+    void MoveTowards(Vector3 targetPosition)
+    {
+        if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
+        {
+            if (targetPosition.y > transform.position.y)
+            {
+                transform.position += Vector3.up * (moveSpeed * Time.deltaTime);
+            }
+            else
+            {
+                transform.position += Vector3.down * (moveSpeed * Time.deltaTime);
+            }
+        }
+        else
+        {
+            if (targetPosition.x > transform.position.x)
+            {
+                transform.position += Vector3.right * (moveSpeed * Time.deltaTime);
+            }
+            else
+            {
+                transform.position += Vector3.left * (moveSpeed * Time.deltaTime);
+            }
+        }
     }
     
     public void TakeDamage(int damage)
