@@ -29,15 +29,18 @@ public class EnemyAI : MonoBehaviour
     public float moveSpeed = 15f;
     public int movesLeft = 2;
     private Rigidbody2D rb;
+    private bool isMoving = false;
+    private Vector3 startingPosition;
     
     void Start()
     {
         currentState = EnemyState.Idle;
         rb = GetComponent<Rigidbody2D>();
+        startingPosition = transform.position;
     }
     void Update()
     {
-        if (!isTurnComplete && movesLeft > 0)
+        if (!isTurnComplete && movesLeft > 0 && !isMoving)
         {
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             switch (currentState)
@@ -58,6 +61,19 @@ public class EnemyAI : MonoBehaviour
                 rb.constraints = RigidbodyConstraints2D.FreezeAll;
                 movesLeft = 2;
             }
+
+            IEnumerator wait = NextMoveAfterDelay();
+        }
+        if (isMoving)
+        {
+            if (currentTarget == CurrentTarget.Player)
+            {
+                MoveTowards(player.position);
+            }
+            else
+            {
+                MoveTowards(companion.position);
+            }
         }
     }
 
@@ -68,14 +84,25 @@ public class EnemyAI : MonoBehaviour
     
     void HandleChaseState()
     {
-        if (Vector3.Distance(transform.position, player.position) < Vector3.Distance(transform.position, companion.position))
+        if (companion == null)
         {
             currentTarget = CurrentTarget.Player;
+            isMoving = true;
+            startingPosition = transform.position;
+            MoveTowards(player.position);
+        }
+        else if (Vector3.Distance(transform.position, player.position) < Vector3.Distance(transform.position, companion.position))
+        {
+            currentTarget = CurrentTarget.Player;
+            isMoving = true;
+            startingPosition = transform.position;
             MoveTowards(player.position);
         }
         else
         {
             currentTarget = CurrentTarget.Companion;
+            isMoving = true;
+            startingPosition = transform.position;
             MoveTowards(companion.position);
         }
 
@@ -83,10 +110,14 @@ public class EnemyAI : MonoBehaviour
         {
             currentState = EnemyState.Attack;
         }
-        else if (Vector3.Distance(transform.position, companion.position) <= attackRange)
+        else if (companion != null)
         {
-            currentState = EnemyState.Attack;
+            if (Vector3.Distance(transform.position, companion.position) <= attackRange)
+            {
+                currentState = EnemyState.Attack;
+            }
         }
+
         movesLeft--;
     }
     
@@ -122,26 +153,44 @@ public class EnemyAI : MonoBehaviour
     
     void MoveTowards(Vector3 targetPosition)
     {
-        if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
+        Vector3 moveDirection;
+        if (isMoving)
         {
-            if (targetPosition.y > transform.position.y)
+            if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
             {
-                transform.position += Vector3.up * (moveSpeed * Time.deltaTime);
+                if (targetPosition.y > transform.position.y)
+                {
+                    transform.position += Vector3.up * (moveSpeed * Time.deltaTime);
+                    //targetPosition = Vector3.up * 0.64f;
+                    moveDirection = Vector3.up;
+                }
+                else
+                {
+                    transform.position += Vector3.down * (moveSpeed * Time.deltaTime);
+                    //targetPosition = Vector3.down * 0.64f;
+                    moveDirection = Vector3.down;
+                }
             }
             else
             {
-                transform.position += Vector3.down * (moveSpeed * Time.deltaTime);
+                if (targetPosition.x > transform.position.x)
+                {
+                    transform.position += Vector3.right * (moveSpeed * Time.deltaTime);
+                    //targetPosition = Vector3.right * 0.64f;
+                    moveDirection = Vector3.right;
+                }
+                else
+                {
+                    transform.position += Vector3.left * (moveSpeed * Time.deltaTime);
+                    //targetPosition = Vector3.left * 0.64f;
+                    moveDirection = Vector3.left;
+                }
             }
-        }
-        else
-        {
-            if (targetPosition.x > transform.position.x)
+
+            if (Vector3.Distance(transform.position, startingPosition) > 0.64f)
             {
-                transform.position += Vector3.right * (moveSpeed * Time.deltaTime);
-            }
-            else
-            {
-                transform.position += Vector3.left * (moveSpeed * Time.deltaTime);
+                transform.position = startingPosition + moveDirection * 0.64f;
+                isMoving = false;
             }
         }
     }
@@ -158,5 +207,10 @@ public class EnemyAI : MonoBehaviour
     {
         Destroy(gameObject);
         Debug.Log(gameObject.name + " died");
+    }
+    
+    IEnumerator NextMoveAfterDelay()
+    {
+        yield return new WaitForSeconds(0.5f);
     }
 }

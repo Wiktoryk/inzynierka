@@ -20,15 +20,18 @@ public class CompanionAI_FSM : MonoBehaviour
     public int health = 50;
     public float moveSpeed = 15f;
     public int movesLeft = 2;
+    private Vector3 startingPosition;
+    private bool isMoving = false;
 
     void Start()
     {
         currentState = CompanionState.Idle;
         rb = GetComponent<Rigidbody2D>();
+        startingPosition= transform.position;
     }
     void Update()
     {
-        if (!isTurnComplete && movesLeft > 0)
+        if (!isTurnComplete && movesLeft > 0 && !isMoving)
         {
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             switch (currentState)
@@ -49,8 +52,14 @@ public class CompanionAI_FSM : MonoBehaviour
                 rb.constraints = RigidbodyConstraints2D.FreezeAll;
                 movesLeft = 2;
             }
+
+            IEnumerator wait = NextMoveAfterDelay();
         }
-        rb.constraints = RigidbodyConstraints2D.FreezeAll;
+
+        if (isMoving)
+        {
+            MoveTowards(player.position);
+        }
     }
 
     void FollowPlayer()
@@ -66,6 +75,8 @@ public class CompanionAI_FSM : MonoBehaviour
         }
         if (currentState == CompanionState.FollowPlayer)
         {
+            isMoving = true;
+            startingPosition = transform.position;
             MoveTowards(player.position);
             movesLeft--;
         }
@@ -88,26 +99,40 @@ public class CompanionAI_FSM : MonoBehaviour
     
     void MoveTowards(Vector3 targetPosition)
     {
-        if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
+        Vector3 moveDirection;
+        if (isMoving)
         {
-            if (targetPosition.y > transform.position.y)
+            if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
             {
-                transform.position += Vector3.up * (moveSpeed * Time.deltaTime);
+                if (targetPosition.y > transform.position.y)
+                {
+                    transform.position += Vector3.up * (moveSpeed * Time.deltaTime);
+                    moveDirection = Vector3.up;
+                }
+                else
+                {
+                    transform.position += Vector3.down * (moveSpeed * Time.deltaTime);
+                    moveDirection = Vector3.down;
+                }
             }
             else
             {
-                transform.position += Vector3.down * (moveSpeed * Time.deltaTime);
+                if (targetPosition.x > transform.position.x)
+                {
+                    transform.position += Vector3.right * (moveSpeed * Time.deltaTime);
+                    moveDirection = Vector3.right;
+                }
+                else
+                {
+                    transform.position += Vector3.left * (moveSpeed * Time.deltaTime);
+                    moveDirection = Vector3.left;
+                }
             }
-        }
-        else
-        {
-            if (targetPosition.x > transform.position.x)
+
+            if (Vector3.Distance(transform.position, startingPosition) > 0.64f)
             {
-                transform.position += Vector3.right * (moveSpeed * Time.deltaTime);
-            }
-            else
-            {
-                transform.position += Vector3.left * (moveSpeed * Time.deltaTime);
+                transform.position = startingPosition + moveDirection * 0.64f;
+                isMoving = false;
             }
         }
     }
@@ -119,6 +144,11 @@ public class CompanionAI_FSM : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+    
+    IEnumerator NextMoveAfterDelay()
+    {
+        yield return new WaitForSeconds(0.5f);
     }
 }
 
