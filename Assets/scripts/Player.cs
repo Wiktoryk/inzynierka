@@ -19,6 +19,7 @@ public class Player : MonoBehaviour
     
     public bool isTurnComplete = false;
     public int movesLeft = 2;
+    public bool isTurn = false;
     
     public int health = 50;
     void Start()
@@ -29,20 +30,23 @@ public class Player : MonoBehaviour
         previousPosition = transform.position;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (!isTurnComplete && !isMoving && movesLeft > 0)
+        if (isTurn)
         {
-            HandleMovementInput();
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-        }
-        MoveToTarget();
-        if (!isMoving && Input.GetKeyDown(KeyCode.Space))
-        {
-            isTurnComplete = true;
-            movesLeft = 2;
-            rb.constraints = RigidbodyConstraints2D.FreezeAll;
+            if (!isTurnComplete && !isMoving && movesLeft > 0)
+            {
+                HandleMovementInput();
+                rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            }
+
+            MoveToTarget();
+            if (!isMoving && Input.GetKeyDown(KeyCode.Space))
+            {
+                isTurnComplete = true;
+                movesLeft = 2;
+                rb.constraints = RigidbodyConstraints2D.FreezeAll;
+            }
         }
     }
     

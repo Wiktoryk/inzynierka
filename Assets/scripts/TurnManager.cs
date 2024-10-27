@@ -27,7 +27,7 @@ public class TurnManager : MonoBehaviour
         UpdateTurnText();
     }
     
-    void Update()
+    void FixedUpdate()
     {
         if (currentTurn != TurnState.Waiting)
         {
@@ -49,18 +49,22 @@ public class TurnManager : MonoBehaviour
     
     void HandlePlayerTurn()
     {
+        player.GetComponent<Player>().isTurn = true;
         if (player.GetComponent<Player>().isTurnComplete)
         {
             player.GetComponent<Player>().isTurnComplete = false;
+            player.GetComponent<Player>().isTurn = false;
             StartCoroutine(NextTurnAfterDelay(TurnState.CompanionTurn));
         }
     }
     
     void HandleCompanionTurn()
     {
+        companion.GetComponent<CompanionAI_FSM>().isTurn = true;
         if (companion.GetComponent<CompanionAI_FSM>().isTurnComplete)
         {
             companion.GetComponent<CompanionAI_FSM>().isTurnComplete = false;
+            companion.GetComponent<CompanionAI_FSM>().isTurn = false;
             StartCoroutine(NextTurnAfterDelay(TurnState.EnemyTurn));
         }
     }
@@ -76,7 +80,9 @@ public class TurnManager : MonoBehaviour
                 enemies.RemoveAt(i);
                 continue;
             }
-            if (!enemy.GetComponent<EnemyAI>().isTurnComplete)
+            var enemyAI = enemy.GetComponent<EnemyAI>();
+            enemyAI.isTurn = true;
+            if (!enemyAI.isTurnComplete)
             {
                 allEnemiesComplete = false;
                 break;
@@ -87,7 +93,9 @@ public class TurnManager : MonoBehaviour
         {
             foreach (GameObject enemy in enemies)
             {
-                enemy.GetComponent<EnemyAI>().isTurnComplete = false;
+                var enemyAI = enemy.GetComponent<EnemyAI>();
+                enemyAI.isTurnComplete = false;
+                enemyAI.isTurn = false;
             }
 
             StartCoroutine(NextTurnAfterDelay(TurnState.PlayerTurn));
@@ -96,9 +104,10 @@ public class TurnManager : MonoBehaviour
     
     IEnumerator NextTurnAfterDelay(TurnState nextTurn)
     {
+        currentTurn = TurnState.Waiting;
         yield return new WaitForSeconds(1f);
         currentTurn = nextTurn;
-        Debug.Log("switching to " + nextTurn);
+        Debug.Log("Switching to " + nextTurn);
     }
     
     void UpdateTurnText()

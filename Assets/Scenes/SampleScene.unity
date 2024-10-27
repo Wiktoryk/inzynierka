@@ -253,6 +253,7 @@ MonoBehaviour:
   moveSpeed: 15
   isTurnComplete: 0
   movesLeft: 2
+  isTurn: 0
   health: 100
 --- !u!61 &330656360
 BoxCollider2D:
@@ -506,6 +507,8 @@ GameObject:
   - component: {fileID: 651719968}
   - component: {fileID: 651719967}
   - component: {fileID: 651719966}
+  - component: {fileID: 651719972}
+  - component: {fileID: 651719971}
   m_Layer: 0
   m_Name: Ally
   m_TagString: Ally
@@ -531,6 +534,8 @@ MonoBehaviour:
   health: 50
   moveSpeed: 15
   movesLeft: 2
+  moveDistance: 0.64
+  isTurn: 0
 --- !u!61 &651719967
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -670,6 +675,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &651719971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 651719965}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 564b0515cc064d64fbde18e74fec9459, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &651719972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 651719965}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec72224bc8ae6142a94a17f46a1edae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &733199161
 GameObject:
   m_ObjectHideFlags: 0
@@ -2628,6 +2657,8 @@ MonoBehaviour:
   attackRange: 1.5
   moveSpeed: 15
   movesLeft: 2
+  isTurn: 0
+  moved: 0
 --- !u!61 &1600343637
 BoxCollider2D:
   m_ObjectHideFlags: 0

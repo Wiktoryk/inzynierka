@@ -32,54 +32,48 @@ public class EnemyAI : MonoBehaviour
     private bool isMoving = false;
     private Vector3 startingPosition;
     
+    public bool isTurn = false;
+    public bool moved = false;
+    
     void Start()
     {
         currentState = EnemyState.Idle;
         rb = GetComponent<Rigidbody2D>();
         startingPosition = transform.position;
     }
-    void Update()
+    void FixedUpdate()
     {
-        if (!isTurnComplete && movesLeft > 0 && !isMoving)
+        if (isTurn)
         {
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-            switch (currentState)
+            if (!isTurnComplete && movesLeft > 0 && !isMoving)
             {
-                case EnemyState.Idle:
-                    HandleIdleState();
-                    break;
-                case EnemyState.Chase:
-                    HandleChaseState();
-                    break;
-                case EnemyState.Attack:
-                    HandleAttackState();
-                    break;
-            }
-            if (movesLeft == 0)
-            {
-                isTurnComplete = true;
-                rb.constraints = RigidbodyConstraints2D.FreezeAll;
-                movesLeft = 2;
-            }
+                rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+                switch (currentState)
+                {
+                    case EnemyState.Idle:
+                        currentState = EnemyState.Chase;
+                        break;
+                    case EnemyState.Chase:
+                        HandleChaseState();
+                        break;
+                    case EnemyState.Attack:
+                        HandleAttackState();
+                        break;
+                }
 
-            IEnumerator wait = NextMoveAfterDelay();
-        }
-        if (isMoving)
-        {
-            if (currentTarget == CurrentTarget.Player)
-            {
-                MoveTowards(player.position);
-            }
-            else
-            {
-                MoveTowards(companion.position);
+                if (movesLeft == 0)
+                {
+                    isTurnComplete = true;
+                    rb.constraints = RigidbodyConstraints2D.FreezeAll;
+                    movesLeft = 2;
+                }
+
+                if (moved)
+                {
+                    StartCoroutine(NextMoveAfterDelay());
+                }
             }
         }
-    }
-
-    void HandleIdleState()
-    {
-        currentState = EnemyState.Chase;
     }
     
     void HandleChaseState()
@@ -130,6 +124,7 @@ public class EnemyAI : MonoBehaviour
                 player.GetComponent<Player>().TakeDamage(10);
                 currentState = EnemyState.Idle;
                 movesLeft--;
+                moved = true;
             }
             else
             {
@@ -143,6 +138,7 @@ public class EnemyAI : MonoBehaviour
                 companion.GetComponent<CompanionAI_FSM>().TakeDamage(10);
                 currentState = EnemyState.Idle;
                 movesLeft--;
+                moved = true;
             }
             else
             {
@@ -192,6 +188,8 @@ public class EnemyAI : MonoBehaviour
                 transform.position = startingPosition + moveDirection * 0.64f;
                 isMoving = false;
             }
+
+            moved = true;
         }
     }
     
@@ -211,6 +209,7 @@ public class EnemyAI : MonoBehaviour
     
     IEnumerator NextMoveAfterDelay()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.2f);
+        moved = false;
     }
 }

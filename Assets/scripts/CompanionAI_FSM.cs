@@ -22,6 +22,12 @@ public class CompanionAI_FSM : MonoBehaviour
     public int movesLeft = 2;
     private Vector3 startingPosition;
     private bool isMoving = false;
+    private Vector3 targetPosition;
+    public float moveDistance = 0.64f;
+    
+    public bool isTurn = false;
+    
+    private List<Vector3> failedMoves = new List<Vector3>();
 
     void Start()
     {
@@ -29,11 +35,12 @@ public class CompanionAI_FSM : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         startingPosition= transform.position;
     }
-    void Update()
+    void FixedUpdate()
     {
-        if (!isTurnComplete && movesLeft > 0 && !isMoving)
+        if (isTurn && !isTurnComplete)
         {
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            
             switch (currentState)
             {
                 case CompanionState.Idle:
@@ -46,19 +53,11 @@ public class CompanionAI_FSM : MonoBehaviour
                     AttackEnemy();
                     break;
             }
+
             if (movesLeft == 0)
             {
-                isTurnComplete = true;
-                rb.constraints = RigidbodyConstraints2D.FreezeAll;
-                movesLeft = 2;
+                CompleteTurn();
             }
-
-            IEnumerator wait = NextMoveAfterDelay();
-        }
-
-        if (isMoving)
-        {
-            MoveTowards(player.position);
         }
     }
 
@@ -73,11 +72,12 @@ public class CompanionAI_FSM : MonoBehaviour
                 break;
             }
         }
-        if (currentState == CompanionState.FollowPlayer)
+        if (currentState == CompanionState.FollowPlayer && movesLeft > 0)
         {
+            targetPosition = player.position;
             isMoving = true;
             startingPosition = transform.position;
-            MoveTowards(player.position);
+            StartCoroutine(MoveTowardsTarget());
             movesLeft--;
         }
     }
@@ -97,44 +97,64 @@ public class CompanionAI_FSM : MonoBehaviour
         currentState = CompanionState.FollowPlayer;
     }
     
-    void MoveTowards(Vector3 targetPosition)
+    IEnumerator MoveTowardsTarget()
     {
-        Vector3 moveDirection;
-        if (isMoving)
+        Vector3? trueTargetPosition = MoveTowardsInfo(targetPosition);
+        if (trueTargetPosition != null)
         {
-            if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
+            Vector3 trueTargetPositionV = trueTargetPosition.Value;
+            trueTargetPositionV += startingPosition;
+            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.1f)
             {
-                if (targetPosition.y > transform.position.y)
-                {
-                    transform.position += Vector3.up * (moveSpeed * Time.deltaTime);
-                    moveDirection = Vector3.up;
-                }
-                else
-                {
-                    transform.position += Vector3.down * (moveSpeed * Time.deltaTime);
-                    moveDirection = Vector3.down;
-                }
-            }
-            else
-            {
-                if (targetPosition.x > transform.position.x)
-                {
-                    transform.position += Vector3.right * (moveSpeed * Time.deltaTime);
-                    moveDirection = Vector3.right;
-                }
-                else
-                {
-                    transform.position += Vector3.left * (moveSpeed * Time.deltaTime);
-                    moveDirection = Vector3.left;
-                }
-            }
-
-            if (Vector3.Distance(transform.position, startingPosition) > 0.64f)
-            {
-                transform.position = startingPosition + moveDirection * 0.64f;
-                isMoving = false;
+                transform.position =
+                    Vector3.MoveTowards(transform.position, trueTargetPositionV, moveSpeed * Time.deltaTime);
+                yield return null;
             }
         }
+
+        isMoving = false;
+
+        if (movesLeft == 0 || currentState == CompanionState.Attack)
+        {
+            CompleteTurn();
+        }
+    }
+    
+    void CompleteTurn()
+    {
+        isTurnComplete = true;
+        isTurn = false;
+        rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        movesLeft = 2;
+        failedMoves.Clear();
+    }
+    
+    Vector3? MoveTowardsInfo(Vector3 targetPosition)
+    {
+        if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
+        {
+            if (targetPosition.y > transform.position.y && !failedMoves.Contains(Vector3.up * moveDistance))
+            {
+                return Vector3.up * moveDistance;
+            }
+            if (!failedMoves.Contains(Vector3.down * moveDistance))
+            {
+                return Vector3.down * moveDistance;
+            }
+        }
+        else
+        {
+            if (targetPosition.x > transform.position.x && !failedMoves.Contains(Vector3.right * moveDistance))
+            {
+                return Vector3.right * moveDistance;
+            }
+            if (!failedMoves.Contains(Vector3.left * moveDistance))
+            {
+                return Vector3.left * moveDistance;
+            }
+        }
+
+        return null;
     }
     
     public void TakeDamage(int damage)
@@ -149,6 +169,21 @@ public class CompanionAI_FSM : MonoBehaviour
     IEnumerator NextMoveAfterDelay()
     {
         yield return new WaitForSeconds(0.5f);
+    }
+    
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Player"))
+        {
+            transform.position = startingPosition;
+            isMoving = false;
+            movesLeft++;
+            Vector3? failedMove = MoveTowardsInfo(targetPosition);
+            if (failedMove != null)
+            {
+                failedMoves.Add(failedMove.Value);
+            }
+        }
     }
 }
 
