@@ -60,12 +60,25 @@ public class TurnManager : MonoBehaviour
     
     void HandleCompanionTurn()
     {
-        companion.GetComponent<CompanionAI_FSM>().isTurn = true;
-        if (companion.GetComponent<CompanionAI_FSM>().isTurnComplete)
+        if (companion.GetComponent<CompanionAI_FSM>().enabled)
         {
-            companion.GetComponent<CompanionAI_FSM>().isTurnComplete = false;
-            companion.GetComponent<CompanionAI_FSM>().isTurn = false;
-            StartCoroutine(NextTurnAfterDelay(TurnState.EnemyTurn));
+            companion.GetComponent<CompanionAI_FSM>().isTurn = true;
+            if (companion.GetComponent<CompanionAI_FSM>().isTurnComplete)
+            {
+                companion.GetComponent<CompanionAI_FSM>().isTurnComplete = false;
+                companion.GetComponent<CompanionAI_FSM>().isTurn = false;
+                StartCoroutine(NextTurnAfterDelay(TurnState.EnemyTurn));
+            }
+        }
+        else if (companion.GetComponent<CompanionAI_CEM>().enabled)
+        {
+            companion.GetComponent<CompanionAI_CEM>().isTurn = true;
+            if (companion.GetComponent<CompanionAI_CEM>().isTurnComplete)
+            {
+                companion.GetComponent<CompanionAI_CEM>().isTurnComplete = false;
+                companion.GetComponent<CompanionAI_CEM>().isTurn = false;
+                StartCoroutine(NextTurnAfterDelay(TurnState.EnemyTurn));
+            }
         }
     }
     

@@ -133,7 +133,15 @@ public class EnemyAI : MonoBehaviour
         {
             if (Vector3.Distance(transform.position, companion.position) <= attackRange)
             {
-                companion.GetComponent<CompanionAI_FSM>().TakeDamage(10);
+                if (companion.GetComponent<CompanionAI_FSM>().enabled)
+                {
+                    companion.GetComponent<CompanionAI_FSM>().TakeDamage(10);
+                }
+                else
+                {
+                    companion.GetComponent<CompanionAI_CEM>().TakeDamage(10);
+                }
+
                 currentState = EnemyState.Idle;
                 movesLeft--;
                 moved = true;
