@@ -123,6 +123,55 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &329930208
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 329930210}
+  - component: {fileID: 329930209}
+  m_Layer: 0
+  m_Name: DungeonGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &329930209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 329930208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f32611b5f8d9f8468ba63dc53267733, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startRoomPrefab: {fileID: 1132576451}
+  roomPrefabs:
+  - {fileID: 1132576451}
+  endRoomPrefab: {fileID: 1132576451}
+  minRoomsBetweenStartAndEnd: 3
+--- !u!4 &329930210
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 329930208}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3.7379127, y: -0.29626533, z: -0.004500015}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330656355
 GameObject:
   m_ObjectHideFlags: 0
@@ -523,7 +572,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 651719965}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3fdd6854db16fd40a68835885ba6fc0, type: 3}
   m_Name: 
@@ -694,11 +743,21 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 651719965}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ec72224bc8ae6142a94a17f46a1edae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentState: 0
+  player: {fileID: 330656358}
+  enemies: []
+  moveSpeed: 15
+  followDistance: 1.5
+  supportRange: 3
+  moveDistance: 0.64
+  isTurnComplete: 0
+  isTurn: 0
+  health: 50
 --- !u!1 &733199161
 GameObject:
   m_ObjectHideFlags: 0
@@ -1878,7 +1937,7 @@ Grid:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1132576451}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CellSize: {x: 0.64, y: 0.64, z: 0}
   m_CellGap: {x: 0, y: 0, z: 0}
   m_CellLayout: 0
@@ -2657,6 +2716,7 @@ MonoBehaviour:
   attackRange: 1.5
   moveSpeed: 15
   movesLeft: 2
+  moveDistance: 0.64
   isTurn: 0
   moved: 0
 --- !u!61 &1600343637
@@ -3014,3 +3074,4 @@ SceneRoots:
   - {fileID: 733199163}
   - {fileID: 1600343640}
   - {fileID: 1370947531}
+  - {fileID: 329930210}
