@@ -100,6 +100,10 @@ public class Player : MonoBehaviour
             isMoving = false;
             movesLeft++;
         }
+        if (collision.CompareTag("move"))
+        {
+            GameObject.Find("DungeonGenerator").GetComponent<DungeonGenerator>().AttemptRoomTransition();
+        }
     }
     
     public void TakeDamage(int damage)

@@ -216,6 +216,9 @@ public class EnemyAI : MonoBehaviour
     {
         Destroy(gameObject);
         Debug.Log(gameObject.name + " died");
+        DungeonGenerator dungeonGenerator = GameObject.Find("DungeonGenerator").GetComponent<DungeonGenerator>();
+        dungeonGenerator.generatedRooms[dungeonGenerator.CurrentRoomPosition].Enemies.Remove(gameObject);
+        dungeonGenerator.CheckRoomCompletion(dungeonGenerator.CurrentRoomPosition);
     }
     
     IEnumerator NextMoveAfterDelay()

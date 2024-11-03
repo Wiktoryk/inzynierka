@@ -7,9 +7,11 @@ public class EnemySpawner : MonoBehaviour
     public GameObject enemyPrefab;
     public int numberOfEnemies;
     public List<Transform> spawnPoints;
+    public List<GameObject> enemies = new List<GameObject>();
 
     void Start()
     {
+        enemies.Clear();
         for (int i = 0; i < numberOfEnemies; i++)
         {
             int xCoord = Random.Range(-3, 4);
@@ -45,7 +47,8 @@ public class EnemySpawner : MonoBehaviour
     {
         for (int i = 0; i < numberOfEnemies; i++)
         {
-            Instantiate(enemyPrefab, spawnPoints[i].position, Quaternion.identity);
+            GameObject enemy = Instantiate(enemyPrefab, spawnPoints[i].position, Quaternion.identity);
+            enemies.Add(enemy);
         }
     }
 }
