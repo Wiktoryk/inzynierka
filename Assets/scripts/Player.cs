@@ -91,6 +91,16 @@ public class Player : MonoBehaviour
             }
         }
     }
+
+    public void MoveToRoom(Vector3 roomPosition)
+    {
+        while (Vector2.Distance(transform.position, roomPosition) > 0.1f)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, roomPosition, moveSpeed * Time.deltaTime);
+        }
+        transform.position = roomPosition;
+    }
+
     void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Ally"))

@@ -77,6 +77,7 @@ public class DungeonGenerator : MonoBehaviour
     {
         EnemySpawner enemySpawner = Instantiate(EnemySpawnerPrefab, roomData.RoomObject.transform.position, Quaternion.identity).GetComponent<EnemySpawner>();
         enemySpawner.GameObject().SetActive(true);
+        enemySpawner.Init(roomData.RoomObject.transform);
         roomData.Enemies = enemySpawner.enemies;
         TurnManager tm = GameObject.Find("TurnManager").GetComponent<TurnManager>();
         tm.enemies = roomData.Enemies;
@@ -102,9 +103,13 @@ public class DungeonGenerator : MonoBehaviour
             if (generatedRooms.ContainsKey(nextRoomPosition))
             {
                 roomData.RoomObject.GetComponent<Grid>().enabled = false;
+                Vector3 RoomDistance = generatedRooms[CurrentRoomPosition].RoomObject.transform.position - generatedRooms[nextRoomPosition].RoomObject.transform.position;
                 CurrentRoomPosition = nextRoomPosition;
-                Vector3 nextRoomPositionV = generatedRooms[nextRoomPosition].RoomObject.GetComponent<Grid>().transform.position * 14;
-                GameObject.FindGameObjectWithTag("Player").transform.position = nextRoomPositionV;
+                Vector3 nextRoomPositionV = generatedRooms[nextRoomPosition].RoomObject.transform.position;
+                Camera.main.transform.position = new Vector3(nextRoomPositionV.x, nextRoomPositionV.y, -10);
+                GameObject.Find("Canvas").transform.position -= RoomDistance;
+                //GameObject.FindGameObjectWithTag("Player").transform.position = nextRoomPositionV;
+                GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().MoveToRoom(nextRoomPositionV);
                 GameObject.FindGameObjectWithTag("Ally").transform.position = nextRoomPositionV;
                 GameObject.FindGameObjectWithTag("Ally").transform.position += new Vector3(0.64f, 0, 0);
                 if (!generatedRooms[nextRoomPosition].IsCompleted)

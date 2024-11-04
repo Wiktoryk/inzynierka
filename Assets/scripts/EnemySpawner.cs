@@ -8,14 +8,21 @@ public class EnemySpawner : MonoBehaviour
     public int numberOfEnemies;
     public List<Transform> spawnPoints;
     public List<GameObject> enemies = new List<GameObject>();
+    public Transform currentRoomPosition;
 
     void Start()
     {
+        
+    }
+
+    public void Init(Transform roomPosition)
+    {
         enemies.Clear();
+        currentRoomPosition = roomPosition;
         for (int i = 0; i < numberOfEnemies; i++)
         {
-            int xCoord = Random.Range(-3, 4);
-            int yCoord = Random.Range(-2, 2);
+            int xCoord = Random.Range((int)currentRoomPosition.position.x-3, (int)currentRoomPosition.position.x+4);
+            int yCoord = Random.Range((int)currentRoomPosition.position.y-2, (int)currentRoomPosition.position.y+2);
             Transform spawnPoint = new GameObject().transform;
             spawnPoint.position = new Vector3(xCoord, yCoord, 0);
             //ensure that the spawn point is not too close to the player or other spawn points
