@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -34,6 +36,7 @@ public class DungeonGenerator : MonoBehaviour
         for (int i = 0; i < minRoomsBetweenStartAndEnd; i++)
         {
             PlaceNextRoom(currentPosition);
+            currentPosition = GetNextRoomPosition(currentPosition);
         }
 
         Vector2Int endPosition = currentPosition + Vector2Int.up;
@@ -42,6 +45,8 @@ public class DungeonGenerator : MonoBehaviour
         RoomData endRoomData = this.AddComponent<RoomData>();
         endRoomData.Init(endPosition, endRoom);
         generatedRooms[endPosition] = endRoomData;
+        endRoom.SetActive(true);
+        endRoom.GetComponent<Grid>().enabled = true;
     }
 
     void PlaceNextRoom(Vector2Int currentPos)
@@ -73,6 +78,8 @@ public class DungeonGenerator : MonoBehaviour
         EnemySpawner enemySpawner = Instantiate(EnemySpawnerPrefab, roomData.RoomObject.transform.position, Quaternion.identity).GetComponent<EnemySpawner>();
         enemySpawner.GameObject().SetActive(true);
         roomData.Enemies = enemySpawner.enemies;
+        TurnManager tm = GameObject.Find("TurnManager").GetComponent<TurnManager>();
+        tm.enemies = roomData.Enemies;
     }
     
     public void CheckRoomCompletion(Vector2Int roomPosition)
@@ -137,15 +144,43 @@ public class DungeonGenerator : MonoBehaviour
 
     List<Vector2Int> GetAvailableExits(Vector2Int position)
     {
-        List<Vector2Int> exits = new List<Vector2Int>
+        Tilemap tilemap = generatedRooms[position].RoomObject.transform.Find("move").GetComponent<Tilemap>();
+        List<Vector2Int> exits = new List<Vector2Int>();
+        foreach (Vector3Int cellPos in tilemap.cellBounds.allPositionsWithin)
         {
-            position + Vector2Int.up,
-            position + Vector2Int.down,
-            position + Vector2Int.left,
-            position + Vector2Int.right
-        };
+            if (!tilemap.HasTile(cellPos))
+            {
+                continue;
+            }
+            Vector3 tileWorldPos = tilemap.CellToWorld(cellPos);
+            if (cellPos.x > 1)
+            {
+                exits.Add(position + Vector2Int.right);
+            }
+            else if (cellPos.x < -1)
+            {
+                exits.Add(position + Vector2Int.left);
+            }
+            else if (cellPos.y > 1)
+            {
+                exits.Add(position + Vector2Int.up);
+            }
+            else if (cellPos.y < -1)
+            {
+                exits.Add(position + Vector2Int.down);
+            }
+            else
+            {
+                Debug.LogError("Invalid exit position");
+            }
+        }
+        Debug.Log("Exits: " + exits.Count);
 
         exits.RemoveAll(exit => generatedRooms.ContainsKey(exit));
+        if (exits.Count == 0)
+        {
+            Debug.LogError("No available exits");
+        }
 
         return exits;
     }

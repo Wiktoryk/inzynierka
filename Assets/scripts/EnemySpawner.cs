@@ -49,6 +49,7 @@ public class EnemySpawner : MonoBehaviour
         {
             GameObject enemy = Instantiate(enemyPrefab, spawnPoints[i].position, Quaternion.identity);
             enemies.Add(enemy);
+            enemy.SetActive(true);
         }
     }
 }

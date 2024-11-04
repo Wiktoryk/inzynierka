@@ -7,7 +7,7 @@ public class TurnManager : MonoBehaviour
 {
     public GameObject player;
     public GameObject companion;
-    public List<GameObject> enemies;
+    public List<GameObject> enemies = new List<GameObject>();
     
     public TextMeshProUGUI turnText;
     
@@ -23,7 +23,6 @@ public class TurnManager : MonoBehaviour
     void Start()
     {
         currentTurn = TurnState.PlayerTurn;
-        enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
         UpdateTurnText();
     }
     
@@ -101,6 +100,7 @@ public class TurnManager : MonoBehaviour
                 break;
             }
         }
+        Debug.Log("All enemies complete: " + allEnemiesComplete);
 
         if (allEnemiesComplete)
         {
