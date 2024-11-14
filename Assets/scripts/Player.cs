@@ -94,6 +94,7 @@ public class Player : MonoBehaviour
 
     public void MoveToRoom(Vector3 roomPosition)
     {
+        targetPosition = roomPosition;
         while (Vector2.Distance(transform.position, roomPosition) > 0.1f)
         {
             transform.position = Vector3.MoveTowards(transform.position, roomPosition, moveSpeed * Time.deltaTime);

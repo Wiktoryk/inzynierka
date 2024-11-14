@@ -108,7 +108,7 @@ public class DungeonGenerator : MonoBehaviour
                 Vector3 nextRoomPositionV = generatedRooms[nextRoomPosition].RoomObject.transform.position;
                 Camera.main.transform.position = new Vector3(nextRoomPositionV.x, nextRoomPositionV.y, -10);
                 GameObject.Find("Canvas").transform.position -= RoomDistance;
-                //GameObject.FindGameObjectWithTag("Player").transform.position = nextRoomPositionV;
+                GameObject.FindGameObjectWithTag("Player").transform.position = nextRoomPositionV;
                 GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().MoveToRoom(nextRoomPositionV);
                 GameObject.FindGameObjectWithTag("Ally").transform.position = nextRoomPositionV;
                 GameObject.FindGameObjectWithTag("Ally").transform.position += new Vector3(0.64f, 0, 0);
