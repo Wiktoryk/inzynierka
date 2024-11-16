@@ -59,6 +59,11 @@ public class TurnManager : MonoBehaviour
     
     void HandleCompanionTurn()
     {
+        if (companion == null)
+        {
+            StartCoroutine(NextTurnAfterDelay(TurnState.EnemyTurn));
+            return;
+        }
         if (companion.GetComponent<CompanionAI_FSM>().enabled)
         {
             companion.GetComponent<CompanionAI_FSM>().isTurn = true;
@@ -100,7 +105,6 @@ public class TurnManager : MonoBehaviour
                 break;
             }
         }
-        Debug.Log("All enemies complete: " + allEnemiesComplete);
 
         if (allEnemiesComplete)
         {

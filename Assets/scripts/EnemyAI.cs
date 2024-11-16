@@ -25,7 +25,7 @@ public class EnemyAI : MonoBehaviour
     public CurrentTarget currentTarget;
     public Transform player;
     public Transform companion;
-    public float attackRange = 1.5f;
+    public float attackRange = 1.0f;
     public float moveSpeed = 15f;
     public int movesLeft = 2;
     private Rigidbody2D rb;
@@ -160,12 +160,13 @@ public class EnemyAI : MonoBehaviour
         {
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
-            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.1f)
+            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.01f)
             {
                 transform.position =
                     Vector3.MoveTowards(transform.position, trueTargetPositionV, moveSpeed * Time.deltaTime);
                 yield return null;
             }
+            transform.position = trueTargetPositionV;
         }
 
         isMoving = false;
@@ -227,6 +228,16 @@ public class EnemyAI : MonoBehaviour
         moved = false;
     }
     
+    private void LateUpdate()
+    {
+        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
+        {
+            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
+            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
+            transform.position = new Vector3(snappedX, snappedY, 0);
+        }
+    }
+    
     void CompleteTurn()
     {
         isTurnComplete = true;
@@ -238,7 +249,7 @@ public class EnemyAI : MonoBehaviour
     
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Wall") || collision.CompareTag("Ally") || collision.CompareTag("Player"))
+        if (collision.CompareTag("Wall") || collision.CompareTag("Ally") || collision.CompareTag("Player") || collision.CompareTag("Enemy"))
         {
             transform.position = startingPosition;
             isMoving = false;

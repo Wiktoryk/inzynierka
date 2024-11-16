@@ -35,7 +35,7 @@ public class Combat : MonoBehaviour
 
     void PerformCombat(GameObject enemy)
     {
-        if (Vector3.Distance(player.transform.position, enemy.transform.position) < 1.5f && player.GetComponent<Player>().movesLeft > 0)
+        if (Vector3.Distance(player.transform.position, enemy.transform.position) < 1.0f && player.GetComponent<Player>().movesLeft > 0)
         {
             enemy.GetComponent<EnemyAI>().TakeDamage(10);
             Debug.Log("Attacked " + enemy.name);

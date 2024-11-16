@@ -91,7 +91,7 @@ public class CompanionAI_CEM : MonoBehaviour
         foreach (GameObject enemy in enemies)
         {
             float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distanceToEnemy < 1.5f)
+            if (distanceToEnemy < 1.0f)
             {
                 maxAttackEmpowerment = Mathf.Max(maxAttackEmpowerment, 2.0f);
             }
@@ -182,6 +182,16 @@ public class CompanionAI_CEM : MonoBehaviour
         rb.constraints = RigidbodyConstraints2D.FreezeAll;
     }
     
+    private void LateUpdate()
+    {
+        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
+        {
+            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
+            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
+            transform.position = new Vector3(snappedX, snappedY, 0);
+        }
+    }
+    
     IEnumerator MoveTowardsTarget()
     {
         Vector3? trueTargetPosition = MoveTowardsInfo(targetPosition);
@@ -189,12 +199,13 @@ public class CompanionAI_CEM : MonoBehaviour
         {
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
-            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.1f)
+            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.01f)
             {
                 transform.position =
                     Vector3.MoveTowards(transform.position, trueTargetPositionV, moveSpeed * Time.deltaTime);
                 yield return null;
             }
+            transform.position = trueTargetPositionV;
         }
 
         isMoving = false;

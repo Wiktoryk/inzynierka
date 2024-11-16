@@ -110,8 +110,12 @@ public class DungeonGenerator : MonoBehaviour
                 GameObject.Find("Canvas").transform.position -= RoomDistance;
                 GameObject.FindGameObjectWithTag("Player").transform.position = nextRoomPositionV;
                 GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().MoveToRoom(nextRoomPositionV);
-                GameObject.FindGameObjectWithTag("Ally").transform.position = nextRoomPositionV;
-                GameObject.FindGameObjectWithTag("Ally").transform.position += new Vector3(0.64f, 0, 0);
+                if (GameObject.FindGameObjectWithTag("Ally") != null)
+                {
+                    GameObject.FindGameObjectWithTag("Ally").transform.position = nextRoomPositionV;
+                    GameObject.FindGameObjectWithTag("Ally").transform.position += new Vector3(0.64f, 0, 0);
+                }
+
                 if (!generatedRooms[nextRoomPosition].IsCompleted)
                 {
                     GenerateEnemies(generatedRooms[nextRoomPosition]);

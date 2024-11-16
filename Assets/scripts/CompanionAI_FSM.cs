@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -66,7 +67,7 @@ public class CompanionAI_FSM : MonoBehaviour
         List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
         foreach (GameObject enemy in allEnemies)
         {
-            if (Vector3.Distance(transform.position, enemy.transform.position) < 1.5f)
+            if (Vector3.Distance(transform.position, enemy.transform.position) < 1.0f)
             {
                 currentState = CompanionState.Attack;
                 break;
@@ -87,7 +88,7 @@ public class CompanionAI_FSM : MonoBehaviour
         List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
         foreach (GameObject enemy in allEnemies)
         {
-            if (Vector3.Distance(transform.position, enemy.transform.position) < 1.5f)
+            if (Vector3.Distance(transform.position, enemy.transform.position) < 1.0f)
             {
                 enemy.GetComponent<EnemyAI>().TakeDamage(10);
                 movesLeft--;
@@ -104,12 +105,14 @@ public class CompanionAI_FSM : MonoBehaviour
         {
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
-            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.1f)
+            Debug.Log("Moving to " + trueTargetPositionV);
+            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.01f)
             {
                 transform.position =
                     Vector3.MoveTowards(transform.position, trueTargetPositionV, moveSpeed * Time.deltaTime);
                 yield return null;
             }
+            transform.position = trueTargetPositionV;
         }
 
         isMoving = false;
@@ -119,11 +122,22 @@ public class CompanionAI_FSM : MonoBehaviour
             CompleteTurn();
         }
     }
-    
+
+    private void LateUpdate()
+    {
+        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
+        {
+            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
+            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
+            transform.position = new Vector3(snappedX, snappedY, 0);
+        }
+    }
+
     void CompleteTurn()
     {
         isTurnComplete = true;
         isTurn = false;
+        
         rb.constraints = RigidbodyConstraints2D.FreezeAll;
         movesLeft = 2;
         failedMoves.Clear();
@@ -141,6 +155,7 @@ public class CompanionAI_FSM : MonoBehaviour
             {
                 return Vector3.down * moveDistance;
             }
+            return Vector3.zero;
         }
         else
         {
@@ -152,6 +167,7 @@ public class CompanionAI_FSM : MonoBehaviour
             {
                 return Vector3.left * moveDistance;
             }
+            return Vector3.zero;
         }
 
         return null;
