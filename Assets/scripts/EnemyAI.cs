@@ -72,6 +72,21 @@ public class EnemyAI : MonoBehaviour
     
     void HandleChaseState()
     {
+        if (Vector3.Distance(transform.position, player.position) <= attackRange)
+        {
+            currentState = EnemyState.Attack;
+            currentTarget = CurrentTarget.Player;
+            return;
+        }
+        if (companion != null)
+        {
+            if (Vector3.Distance(transform.position, companion.position) <= attackRange)
+            {
+                currentState = EnemyState.Attack;
+                currentTarget = CurrentTarget.Companion;
+                return;
+            }
+        }
         if (companion == null)
         {
             currentTarget = CurrentTarget.Player;
@@ -98,18 +113,6 @@ public class EnemyAI : MonoBehaviour
             targetPosition = companion.position;
             StartCoroutine(MoveTowards());
             movesLeft--;
-        }
-
-        if (Vector3.Distance(transform.position, player.position) <= attackRange)
-        {
-            currentState = EnemyState.Attack;
-        }
-        else if (companion != null)
-        {
-            if (Vector3.Distance(transform.position, companion.position) <= attackRange)
-            {
-                currentState = EnemyState.Attack;
-            }
         }
     }
     
@@ -189,6 +192,8 @@ public class EnemyAI : MonoBehaviour
             {
                 return Vector3.down * moveDistance;
             }
+
+            return Vector3.zero;
         }
         else
         {
@@ -200,9 +205,8 @@ public class EnemyAI : MonoBehaviour
             {
                 return Vector3.left * moveDistance;
             }
+            return Vector3.zero;
         }
-
-        return null;
     }
     
     public void TakeDamage(int damage)
@@ -251,6 +255,7 @@ public class EnemyAI : MonoBehaviour
     {
         if (collision.CompareTag("Wall") || collision.CompareTag("Ally") || collision.CompareTag("Player") || collision.CompareTag("Enemy"))
         {
+            Debug.Log("Failed move");
             transform.position = startingPosition;
             isMoving = false;
             movesLeft++;

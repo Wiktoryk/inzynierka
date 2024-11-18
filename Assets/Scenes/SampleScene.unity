@@ -11762,7 +11762,7 @@ MonoBehaviour:
   currentTarget: 0
   player: {fileID: 330656358}
   companion: {fileID: 651719970}
-  attackRange: 1.5
+  attackRange: 1
   moveSpeed: 15
   movesLeft: 2
   moveDistance: 0.64

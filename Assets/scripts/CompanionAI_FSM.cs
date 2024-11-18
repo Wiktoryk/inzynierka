@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public enum CompanionState
 {
@@ -25,10 +26,15 @@ public class CompanionAI_FSM : MonoBehaviour
     private bool isMoving = false;
     private Vector3 targetPosition;
     public float moveDistance = 0.64f;
+    public float attackRange = 1.0f;
+    public float rangedAttackRange = 2.0f;
+    public int attackDamage = 10;
+    public int rangedAttackDamage = 5;
     
     public bool isTurn = false;
     
     private List<Vector3> failedMoves = new List<Vector3>();
+    private bool isBusy = false;
 
     void Start()
     {
@@ -38,27 +44,26 @@ public class CompanionAI_FSM : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if (isTurn && !isTurnComplete)
+        if (isTurn && !isTurnComplete && !isBusy)
         {
+            isBusy = true;
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-            
-            switch (currentState)
+            while (movesLeft > 0)
             {
-                case CompanionState.Idle:
-                    currentState = CompanionState.FollowPlayer;
-                    break;
-                case CompanionState.FollowPlayer:
-                    FollowPlayer();
-                    break;
-                case CompanionState.Attack:
-                    AttackEnemy();
-                    break;
+                switch (currentState)
+                {
+                    case CompanionState.Idle:
+                        currentState = CompanionState.FollowPlayer;
+                        break;
+                    case CompanionState.FollowPlayer:
+                        FollowPlayer();
+                        break;
+                    case CompanionState.Attack:
+                        AttackEnemy();
+                        break;
+                }
             }
-
-            if (movesLeft == 0)
-            {
-                CompleteTurn();
-            }
+            CompleteTurn();
         }
     }
 
@@ -67,19 +72,20 @@ public class CompanionAI_FSM : MonoBehaviour
         List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
         foreach (GameObject enemy in allEnemies)
         {
-            if (Vector3.Distance(transform.position, enemy.transform.position) < 1.0f)
+            if (Vector3.Distance(transform.position, enemy.transform.position) < rangedAttackRange)
             {
                 currentState = CompanionState.Attack;
-                break;
+                return;
             }
         }
-        if (currentState == CompanionState.FollowPlayer && movesLeft > 0)
+
+        if (movesLeft > 0)
         {
+            startingPosition = transform.position;
             targetPosition = player.position;
             isMoving = true;
-            startingPosition = transform.position;
-            StartCoroutine(MoveTowardsTarget());
             movesLeft--;
+            MoveTowardsTarget();
         }
     }
 
@@ -88,36 +94,61 @@ public class CompanionAI_FSM : MonoBehaviour
         List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
         foreach (GameObject enemy in allEnemies)
         {
-            if (Vector3.Distance(transform.position, enemy.transform.position) < 1.0f)
+            if (Vector3.Distance(transform.position, enemy.transform.position) < attackRange)
             {
-                enemy.GetComponent<EnemyAI>().TakeDamage(10);
+                enemy.GetComponent<EnemyAI>().TakeDamage(attackDamage);
                 movesLeft--;
                 break;
             }
+
+            int result = Random.Range(0, 1);
+            if (result == 1)
+            {
+                if (Vector3.Distance(transform.position, enemy.transform.position) < rangedAttackDamage)
+                {
+                    enemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
+                    movesLeft--;
+                    break;
+                }
+                targetPosition = enemy.transform.position;
+                startingPosition = transform.position;
+                isMoving = true;
+                movesLeft--;
+                MoveTowardsTarget();
+                
+            }
+            targetPosition = enemy.transform.position;
+            startingPosition = transform.position;
+            isMoving = true;
+            movesLeft--;
+            MoveTowardsTarget();
+            
         }
         currentState = CompanionState.FollowPlayer;
     }
     
-    IEnumerator MoveTowardsTarget()
+    void MoveTowardsTarget()
     {
         Vector3? trueTargetPosition = MoveTowardsInfo(targetPosition);
         if (trueTargetPosition != null)
         {
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
-            Debug.Log("Moving to " + trueTargetPositionV);
+            Debug.Log("Moving to " + trueTargetPositionV + "from " + transform.position + "towards " + targetPosition + "during state " + currentState);
             while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.01f)
             {
                 transform.position =
                     Vector3.MoveTowards(transform.position, trueTargetPositionV, moveSpeed * Time.deltaTime);
-                yield return null;
             }
             transform.position = trueTargetPositionV;
+            failedMoves.Clear();
         }
-
+        else
+        {
+            Debug.Log("No valid move found. Stopping movement.");
+        }
         isMoving = false;
-
-        if (movesLeft == 0 || currentState == CompanionState.Attack)
+        if (movesLeft == 0)
         {
             CompleteTurn();
         }
@@ -141,33 +172,30 @@ public class CompanionAI_FSM : MonoBehaviour
         rb.constraints = RigidbodyConstraints2D.FreezeAll;
         movesLeft = 2;
         failedMoves.Clear();
+        isBusy = false;
     }
     
-    Vector3? MoveTowardsInfo(Vector3 targetPosition)
+    Vector3? MoveTowardsInfo(Vector3 targetPositionM)
     {
-        if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
+        List<Vector3> directions = new List<Vector3>
         {
-            if (targetPosition.y > transform.position.y && !failedMoves.Contains(Vector3.up * moveDistance))
-            {
-                return Vector3.up * moveDistance;
-            }
-            if (!failedMoves.Contains(Vector3.down * moveDistance))
-            {
-                return Vector3.down * moveDistance;
-            }
-            return Vector3.zero;
-        }
-        else
+            Vector3.up * moveDistance,
+            Vector3.down * moveDistance,
+            Vector3.left * moveDistance,
+            Vector3.right * moveDistance
+        };
+        
+        directions.Sort((a, b) =>
+            Vector3.Distance(transform.position + a, targetPositionM)
+                .CompareTo(Vector3.Distance(transform.position + b, targetPositionM))
+        );
+        
+        foreach (var direction in directions)
         {
-            if (targetPosition.x > transform.position.x && !failedMoves.Contains(Vector3.right * moveDistance))
+            if (!failedMoves.Contains(direction))
             {
-                return Vector3.right * moveDistance;
+                return direction;
             }
-            if (!failedMoves.Contains(Vector3.left * moveDistance))
-            {
-                return Vector3.left * moveDistance;
-            }
-            return Vector3.zero;
         }
 
         return null;
@@ -189,11 +217,12 @@ public class CompanionAI_FSM : MonoBehaviour
     
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Player"))
+        if (isTurn && (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Player")))
         {
             transform.position = startingPosition;
             isMoving = false;
             movesLeft++;
+            Debug.Log("Failed move companion");
             Vector3? failedMove = MoveTowardsInfo(targetPosition);
             if (failedMove != null)
             {

@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Random = UnityEngine.Random;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -108,19 +110,36 @@ public class DungeonGenerator : MonoBehaviour
                 Vector3 nextRoomPositionV = generatedRooms[nextRoomPosition].RoomObject.transform.position;
                 Camera.main.transform.position = new Vector3(nextRoomPositionV.x, nextRoomPositionV.y, -10);
                 GameObject.Find("Canvas").transform.position -= RoomDistance;
-                GameObject.FindGameObjectWithTag("Player").transform.position = nextRoomPositionV;
-                GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().MoveToRoom(nextRoomPositionV);
+                String roomName = generatedRooms[CurrentRoomPosition].RoomObject.name;
+                Vector3 displacement = new Vector3(0.32f, 0.32f, 0);
+                if (roomName.StartsWith("left") || roomName.StartsWith("end"))
+                {
+                    displacement += new Vector3(-3.2f, 0, 0);
+                }
+                else if (roomName.StartsWith("right") || roomName.StartsWith("start"))
+                {
+                    displacement += new Vector3(3.2f, 0, 0);
+                }
+                else if (roomName.StartsWith("up"))
+                {
+                    displacement += new Vector3(0, 1.92f, 0);
+                }
+                else if (roomName.StartsWith("down"))
+                {
+                    displacement += new Vector3(0, -1.92f, 0);
+                }
+                GameObject.FindGameObjectWithTag("Player").transform.position = nextRoomPositionV + displacement;
+                GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().MoveToRoom(nextRoomPositionV + displacement);
                 if (GameObject.FindGameObjectWithTag("Ally") != null)
                 {
-                    GameObject.FindGameObjectWithTag("Ally").transform.position = nextRoomPositionV;
-                    GameObject.FindGameObjectWithTag("Ally").transform.position += new Vector3(0.64f, 0, 0);
+                    GameObject.FindGameObjectWithTag("Ally").transform.position = nextRoomPositionV + displacement;
+                    GameObject.FindGameObjectWithTag("Ally").transform.position += new Vector3(0, 0.64f, 0);
                 }
 
                 if (!generatedRooms[nextRoomPosition].IsCompleted)
                 {
                     GenerateEnemies(generatedRooms[nextRoomPosition]);
                 }
-                Debug.Log("moved to room " + nextRoomPosition);
             }
         }
     }
@@ -183,7 +202,6 @@ public class DungeonGenerator : MonoBehaviour
                 Debug.LogError("Invalid exit position");
             }
         }
-        Debug.Log("Exits: " + exits.Count);
 
         exits.RemoveAll(exit => generatedRooms.ContainsKey(exit));
         if (exits.Count == 0)
