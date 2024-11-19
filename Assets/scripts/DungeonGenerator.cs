@@ -34,14 +34,85 @@ public class DungeonGenerator : MonoBehaviour
         startRoom.SetActive(true);
         startRoom.GetComponent<Grid>().enabled = true;
         GenerateEnemies(roomData);
+        int maxSize = Random.Range(minRoomsBetweenStartAndEnd, minRoomsBetweenStartAndEnd + 2);
 
-        for (int i = 0; i < minRoomsBetweenStartAndEnd; i++)
+        for (int i = 0; i < maxSize; i++)
         {
-            PlaceNextRoom(currentPosition);
-            currentPosition = GetNextRoomPosition(currentPosition);
+            currentPosition = PlaceNextRoom(currentPosition);
+            //currentPosition = GetNextRoomPosition(currentPosition);
+            Debug.Log("Current Position: " + currentPosition);
         }
+        if (!generatedRooms[currentPosition].RoomObject.name.Contains("RightExit"))
+        {
+            bool chosen = false;
+            bool fix = false;
+            while (!fix)
+            {
+                if (generatedRooms[currentPosition].RoomObject.name.Contains("TopExit") && !chosen)
+                {
+                    Vector2Int position = currentPosition + Vector2Int.up;
+                    if (generatedRooms.ContainsKey(position))
+                    {
+                        chosen = true;
+                        continue;
+                    }
+                    Vector3 position3 = new Vector3(position.x * 14, position.y * 14, 0);
+                    GameObject roomPrefab = roomPrefabs[0];
+                    foreach (GameObject prefab in roomPrefabs)
+                    {
+                        if (RoomMatchesDoors(prefab.name, Vector2Int.up))
+                        {
+                            roomPrefab = prefab;
+                            if (roomPrefab.name.Contains("RightExit"))
+                            {
+                                break;
+                            }
+                        }
+                    }
 
-        Vector2Int endPosition = currentPosition + Vector2Int.up;
+                    GameObject room = Instantiate(roomPrefab, position3, Quaternion.identity);
+                    RoomData roomDataFix = this.AddComponent<RoomData>();
+                    roomDataFix.Init(position, room);
+                    generatedRooms[position] = roomDataFix;
+                    room.SetActive(true);
+                    room.GetComponent<Grid>().enabled = true;
+                    currentPosition = position;
+                    fix = true;
+                }
+                else if (generatedRooms[currentPosition].RoomObject.name.Contains("BottomExit"))
+                {
+                    Vector2Int position = currentPosition + Vector2Int.down;
+                    if (generatedRooms.ContainsKey(position))
+                    {
+                        break;
+                    }
+                    Vector3 position3 = new Vector3(position.x * 14, position.y * 14, 0);
+                    GameObject roomPrefab = roomPrefabs[0];
+                    foreach (GameObject prefab in roomPrefabs)
+                    {
+                        if (RoomMatchesDoors(prefab.name, Vector2Int.down))
+                        {
+                            roomPrefab = prefab;
+                            if (roomPrefab.name.Contains("RightExit"))
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    GameObject room = Instantiate(roomPrefab, position3, Quaternion.identity);
+                    RoomData roomDataFix = this.AddComponent<RoomData>();
+                    roomDataFix.Init(position, room);
+                    generatedRooms[position] = roomDataFix;
+                    room.SetActive(true);
+                    room.GetComponent<Grid>().enabled = true;
+                    currentPosition = position;
+                    fix = true;
+                }
+            }
+        }
+        Debug.Log("current Position: " + currentPosition);
+        Vector2Int endPosition = currentPosition + Vector2Int.right;
         Vector3 endingPosition = new Vector3(endPosition.x, endPosition.y, 0);
         GameObject endRoom = Instantiate(endRoomPrefab, endingPosition * 14, Quaternion.identity);
         RoomData endRoomData = this.AddComponent<RoomData>();
@@ -49,20 +120,36 @@ public class DungeonGenerator : MonoBehaviour
         generatedRooms[endPosition] = endRoomData;
         endRoom.SetActive(true);
         endRoom.GetComponent<Grid>().enabled = true;
+        Debug.Log("End Position: " + endPosition);
     }
 
-    void PlaceNextRoom(Vector2Int currentPos)
+    Vector2Int PlaceNextRoom(Vector2Int currentPos)
     {
         List<Vector2Int> possibleExits = GetAvailableExits(currentPos);
         if (possibleExits.Count == 0)
         {
-            return;
+            return currentPos;
         }
         Vector2Int selectedExit = possibleExits[Random.Range(0, possibleExits.Count)];
-        Vector3 roomPosition = new Vector3(selectedExit.x, selectedExit.y, 0);
+        Vector3 roomPosition = new Vector3(selectedExit.x * 14, selectedExit.y * 14, 0);
         if (!generatedRooms.ContainsKey(selectedExit))
         {
-            GameObject newRoom = Instantiate(roomPrefabs[Random.Range(0, roomPrefabs.Length)], roomPosition * 14, Quaternion.identity);
+            Vector2Int direction = selectedExit - currentPos;
+            List<GameObject> matchingPrefabs = new List<GameObject>();
+            foreach (GameObject prefab in roomPrefabs)
+            {
+                if (RoomMatchesDoors(prefab.name, direction))
+                {
+                    matchingPrefabs.Add(prefab);
+                }
+            }
+            if (matchingPrefabs.Count == 0)
+            {
+                Debug.LogWarning("No matching room found for exit at " + selectedExit);
+                return currentPos;
+            }
+            GameObject selectedPrefab = matchingPrefabs[Random.Range(0, matchingPrefabs.Count)];
+            GameObject newRoom = Instantiate(selectedPrefab, roomPosition, Quaternion.identity);
             RoomData roomData = this.AddComponent<RoomData>();
             roomData.Init(selectedExit, newRoom);
             newRoom.GetComponent<Grid>().enabled = true;
@@ -72,7 +159,22 @@ public class DungeonGenerator : MonoBehaviour
                 //GenerateEnemies(roomData);
             }
             generatedRooms[selectedExit] = roomData;
+            return selectedExit;
         }
+
+        return currentPos;
+    }
+    
+    bool RoomMatchesDoors(string roomName, Vector2Int direction)
+    {
+        string requiredEnter = "";
+
+        if (direction == Vector2Int.up) requiredEnter = "bottom";
+        else if (direction == Vector2Int.down) requiredEnter = "top";
+        else if (direction == Vector2Int.left) requiredEnter = "right";
+        else if (direction == Vector2Int.right) requiredEnter = "left";
+
+        return roomName.Contains(requiredEnter + "Enter");
     }
     
     void GenerateEnemies(RoomData roomData)

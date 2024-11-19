@@ -3355,6 +3355,10 @@ MonoBehaviour:
   rangedAttackRange: 2
   attackDamage: 10
   rangedAttackDamage: 5
+  healCount: 2
+  healAmount: 10
+  turnCounter: 0
+  HealTarget: {fileID: 0}
   isTurn: 0
 --- !u!61 &651719967
 BoxCollider2D:
