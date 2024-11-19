@@ -26,7 +26,7 @@ public class TurnManager : MonoBehaviour
         UpdateTurnText();
     }
     
-    void FixedUpdate()
+    void Update()
     {
         if (currentTurn != TurnState.Waiting)
         {
@@ -67,6 +67,7 @@ public class TurnManager : MonoBehaviour
         if (companion.GetComponent<CompanionAI_FSM>().enabled)
         {
             companion.GetComponent<CompanionAI_FSM>().isTurn = true;
+            companion.GetComponent<CompanionAI_FSM>().PerformActions();
             if (companion.GetComponent<CompanionAI_FSM>().isTurnComplete)
             {
                 companion.GetComponent<CompanionAI_FSM>().isTurnComplete = false;
@@ -77,6 +78,7 @@ public class TurnManager : MonoBehaviour
         else if (companion.GetComponent<CompanionAI_CEM>().enabled)
         {
             companion.GetComponent<CompanionAI_CEM>().isTurn = true;
+            companion.GetComponent<CompanionAI_CEM>().PerformActions();
             if (companion.GetComponent<CompanionAI_CEM>().isTurnComplete)
             {
                 companion.GetComponent<CompanionAI_CEM>().isTurnComplete = false;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -9,7 +10,8 @@ public enum CompanionState
 {
     Idle,
     FollowPlayer,
-    Attack
+    Attack,
+    Heal
 }
 
 public class CompanionAI_FSM : MonoBehaviour
@@ -23,13 +25,16 @@ public class CompanionAI_FSM : MonoBehaviour
     public float moveSpeed = 15f;
     public int movesLeft = 2;
     private Vector3 startingPosition;
-    private bool isMoving = false;
     private Vector3 targetPosition;
     public float moveDistance = 0.64f;
     public float attackRange = 1.0f;
     public float rangedAttackRange = 2.0f;
     public int attackDamage = 10;
     public int rangedAttackDamage = 5;
+    public int healCount = 2;
+    public int healAmount = 10;
+    public int turnCounter = 0;
+    public Transform HealTarget;
     
     public bool isTurn = false;
     
@@ -41,28 +46,54 @@ public class CompanionAI_FSM : MonoBehaviour
         currentState = CompanionState.Idle;
         rb = GetComponent<Rigidbody2D>();
         startingPosition= transform.position;
+        HealTarget = player;
     }
-    void FixedUpdate()
+    public void PerformActions()
     {
         if (isTurn && !isTurnComplete && !isBusy)
         {
             isBusy = true;
+            turnCounter++;
+            if (turnCounter % 3 == 0)
+            {
+                healCount = 2;
+                turnCounter = 0;
+            }
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            String states = "";
             while (movesLeft > 0)
             {
+                if (health < 30 && healCount > 0)
+                {
+                    currentState = CompanionState.Heal;
+                    HealTarget = transform;
+                }
+                if (player.GetComponent<Player>().health < 50 && healCount > 0)
+                {
+                    currentState = CompanionState.Heal;
+                    HealTarget = player;
+                }
                 switch (currentState)
                 {
                     case CompanionState.Idle:
+                        states += "Idle;";
                         currentState = CompanionState.FollowPlayer;
                         break;
                     case CompanionState.FollowPlayer:
+                        states += "FollowPlayer;";
                         FollowPlayer();
                         break;
                     case CompanionState.Attack:
+                        states += "Attack;";
                         AttackEnemy();
+                        break;
+                    case CompanionState.Heal:
+                        states += "Heal;";
+                        Heal();
                         break;
                 }
             }
+            Debug.Log(states);
             CompleteTurn();
         }
     }
@@ -78,15 +109,10 @@ public class CompanionAI_FSM : MonoBehaviour
                 return;
             }
         }
-
-        if (movesLeft > 0)
-        {
-            startingPosition = transform.position;
-            targetPosition = player.position;
-            isMoving = true;
-            movesLeft--;
-            MoveTowardsTarget();
-        }
+        startingPosition = transform.position;
+        targetPosition = player.position;
+        movesLeft--;
+        MoveTowardsTarget();
     }
 
     void AttackEnemy()
@@ -100,11 +126,11 @@ public class CompanionAI_FSM : MonoBehaviour
                 movesLeft--;
                 break;
             }
-
+        
             int result = Random.Range(0, 1);
             if (result == 1)
             {
-                if (Vector3.Distance(transform.position, enemy.transform.position) < rangedAttackDamage)
+                if (Vector3.Distance(transform.position, enemy.transform.position) < rangedAttackRange)
                 {
                     enemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
                     movesLeft--;
@@ -112,17 +138,39 @@ public class CompanionAI_FSM : MonoBehaviour
                 }
                 targetPosition = enemy.transform.position;
                 startingPosition = transform.position;
-                isMoving = true;
                 movesLeft--;
                 MoveTowardsTarget();
-                
+                break;
+
             }
             targetPosition = enemy.transform.position;
             startingPosition = transform.position;
-            isMoving = true;
             movesLeft--;
             MoveTowardsTarget();
-            
+            break;
+
+        }
+        currentState = CompanionState.FollowPlayer;
+    }
+    
+    void Heal()
+    {
+        if (HealTarget == transform)
+        {
+            health += healAmount;
+        }
+        else if (Vector3.Distance(transform.position, HealTarget.position) <= moveDistance)
+        {
+            HealTarget.GetComponent<Player>().health += healAmount;
+            healCount--;
+            movesLeft--;
+        }
+        else
+        {
+            targetPosition = HealTarget.position;
+            startingPosition = transform.position;
+            movesLeft--;
+            MoveTowardsTarget();
         }
         currentState = CompanionState.FollowPlayer;
     }
@@ -134,35 +182,29 @@ public class CompanionAI_FSM : MonoBehaviour
         {
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
-            Debug.Log("Moving to " + trueTargetPositionV + "from " + transform.position + "towards " + targetPosition + "during state " + currentState);
-            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.01f)
-            {
-                transform.position =
-                    Vector3.MoveTowards(transform.position, trueTargetPositionV, moveSpeed * Time.deltaTime);
-            }
             transform.position = trueTargetPositionV;
-            failedMoves.Clear();
-        }
-        else
-        {
-            Debug.Log("No valid move found. Stopping movement.");
-        }
-        isMoving = false;
-        if (movesLeft == 0)
-        {
-            CompleteTurn();
+            if (!checkValidPosition())
+            {
+                movesLeft++;
+                transform.position = startingPosition;
+                failedMoves.Add(trueTargetPosition.Value);
+            }
+            else
+            {
+                failedMoves.Clear();
+            }
         }
     }
 
-    private void LateUpdate()
-    {
-        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
-        {
-            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
-            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
-            transform.position = new Vector3(snappedX, snappedY, 0);
-        }
-    }
+    // private void LateUpdate()
+    // {
+    //     if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
+    //     {
+    //         float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
+    //         float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
+    //         transform.position = new Vector3(snappedX, snappedY, 0);
+    //     }
+    // }
 
     void CompleteTurn()
     {
@@ -220,7 +262,6 @@ public class CompanionAI_FSM : MonoBehaviour
         if (isTurn && (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Player")))
         {
             transform.position = startingPosition;
-            isMoving = false;
             movesLeft++;
             Debug.Log("Failed move companion");
             Vector3? failedMove = MoveTowardsInfo(targetPosition);
@@ -229,6 +270,26 @@ public class CompanionAI_FSM : MonoBehaviour
                 failedMoves.Add(failedMove.Value);
             }
         }
+    }
+
+    bool checkValidPosition()
+    {
+        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
+        {
+            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
+            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
+            transform.position = new Vector3(snappedX, snappedY, 0);
+        }
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.1f);
+        foreach (Collider2D collider in colliders)
+        {
+            if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Player") || collider.gameObject.CompareTag("Enemy")))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

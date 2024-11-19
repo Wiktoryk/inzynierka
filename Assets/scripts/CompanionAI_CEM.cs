@@ -39,7 +39,7 @@ public class CompanionAI_CEM : MonoBehaviour
     }
 
     
-    void FixedUpdate()
+    public void PerformActions()
     {
         if (isTurn && !isTurnComplete)
         {

@@ -3351,6 +3351,10 @@ MonoBehaviour:
   moveSpeed: 15
   movesLeft: 2
   moveDistance: 0.64
+  attackRange: 1
+  rangedAttackRange: 2
+  attackDamage: 10
+  rangedAttackDamage: 5
   isTurn: 0
 --- !u!61 &651719967
 BoxCollider2D:
@@ -11737,7 +11741,7 @@ GameObject:
   - component: {fileID: 1600343638}
   - component: {fileID: 1600343637}
   - component: {fileID: 1600343636}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
