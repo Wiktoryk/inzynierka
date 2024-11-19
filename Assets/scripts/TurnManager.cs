@@ -101,6 +101,7 @@ public class TurnManager : MonoBehaviour
             }
             var enemyAI = enemy.GetComponent<EnemyAI>();
             enemyAI.isTurn = true;
+            enemyAI.PerformActions();
             if (!enemyAI.isTurnComplete)
             {
                 allEnemiesComplete = false;

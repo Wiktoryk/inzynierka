@@ -29,14 +29,13 @@ public class EnemyAI : MonoBehaviour
     public float moveSpeed = 15f;
     public int movesLeft = 2;
     private Rigidbody2D rb;
-    private bool isMoving = false;
     private Vector3 startingPosition;
     private Vector3 targetPosition;
     public float moveDistance = 0.64f;
     
     public bool isTurn = false;
-    public bool moved = false;
     private List<Vector3> failedMoves = new List<Vector3>();
+    private bool isBusy = false;
     
     void Start()
     {
@@ -44,29 +43,29 @@ public class EnemyAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         startingPosition = transform.position;
     }
-    void FixedUpdate()
+    public void PerformActions()
     {
-        if (isTurn && !isTurnComplete)
+        if (isTurn && !isTurnComplete && !isBusy)
         {
+            isBusy = true;
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-            
-            switch (currentState)
-            {
-                case EnemyState.Idle:
-                    currentState = EnemyState.Chase;
-                    break;
-                case EnemyState.Chase:
-                    HandleChaseState();
-                    break;
-                case EnemyState.Attack:
-                    HandleAttackState();
-                    break;
-            }
 
-            if (movesLeft == 0)
+            while (movesLeft > 0)
             {
-                CompleteTurn();
+                switch (currentState)
+                {
+                    case EnemyState.Idle:
+                        currentState = EnemyState.Chase;
+                        break;
+                    case EnemyState.Chase:
+                        HandleChaseState();
+                        break;
+                    case EnemyState.Attack:
+                        HandleAttackState();
+                        break;
+                }
             }
+            CompleteTurn();
         }
     }
     
@@ -90,29 +89,26 @@ public class EnemyAI : MonoBehaviour
         if (companion == null)
         {
             currentTarget = CurrentTarget.Player;
-            isMoving = true;
             startingPosition = transform.position;
             targetPosition = player.position;
-            StartCoroutine(MoveTowards());
             movesLeft--;
+            MoveTowards();
         }
         else if (Vector3.Distance(transform.position, player.position) < Vector3.Distance(transform.position, companion.position))
         {
             currentTarget = CurrentTarget.Player;
-            isMoving = true;
             startingPosition = transform.position;
             targetPosition = player.position;
-            StartCoroutine(MoveTowards());
             movesLeft--;
+            MoveTowards();
         }
         else
         {
             currentTarget = CurrentTarget.Companion;
-            isMoving = true;
             startingPosition = transform.position;
             targetPosition = companion.position;
-            StartCoroutine(MoveTowards());
             movesLeft--;
+            MoveTowards();
         }
     }
     
@@ -125,7 +121,6 @@ public class EnemyAI : MonoBehaviour
                 player.GetComponent<Player>().TakeDamage(10);
                 currentState = EnemyState.Idle;
                 movesLeft--;
-                moved = true;
             }
             else
             {
@@ -147,7 +142,6 @@ public class EnemyAI : MonoBehaviour
 
                 currentState = EnemyState.Idle;
                 movesLeft--;
-                moved = true;
             }
             else
             {
@@ -156,57 +150,51 @@ public class EnemyAI : MonoBehaviour
         }
     }
     
-    IEnumerator MoveTowards()
+    void MoveTowards()
     {
         Vector3? trueTargetPosition = MoveTowardsInfo(targetPosition);
         if (trueTargetPosition != null)
         {
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
-            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.01f)
-            {
-                transform.position =
-                    Vector3.MoveTowards(transform.position, trueTargetPositionV, moveSpeed * Time.deltaTime);
-                yield return null;
-            }
             transform.position = trueTargetPositionV;
-        }
-
-        isMoving = false;
-
-        if (movesLeft == 0 || currentState == EnemyState.Attack)
-        {
-            CompleteTurn();
+            if (!checkValidPosition())
+            {
+                movesLeft++;
+                transform.position = startingPosition;
+                failedMoves.Add(trueTargetPosition.Value);
+            }
+            else
+            {
+                failedMoves.Clear();
+            }
         }
     }
     
-    Vector3? MoveTowardsInfo(Vector3 targetPosition)
+    Vector3? MoveTowardsInfo(Vector3 targetPositionM)
     {
-        if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
+        List<Vector3> directions = new List<Vector3>
         {
-            if (targetPosition.y > transform.position.y && !failedMoves.Contains(Vector3.up * moveDistance))
+            Vector3.up * moveDistance,
+            Vector3.down * moveDistance,
+            Vector3.left * moveDistance,
+            Vector3.right * moveDistance
+        };
+        
+        directions.Sort((a, b) =>
+            Vector3.Distance(transform.position + a, targetPositionM)
+                .CompareTo(Vector3.Distance(transform.position + b, targetPositionM))
+        );
+        
+        foreach (var direction in directions)
+        {
+            if (!failedMoves.Contains(direction))
             {
-                return Vector3.up * moveDistance;
+                return direction;
             }
-            if (!failedMoves.Contains(Vector3.down * moveDistance))
-            {
-                return Vector3.down * moveDistance;
-            }
+        }
 
-            return Vector3.zero;
-        }
-        else
-        {
-            if (targetPosition.x > transform.position.x && !failedMoves.Contains(Vector3.right * moveDistance))
-            {
-                return Vector3.right * moveDistance;
-            }
-            if (!failedMoves.Contains(Vector3.left * moveDistance))
-            {
-                return Vector3.left * moveDistance;
-            }
-            return Vector3.zero;
-        }
+        return null;
     }
     
     public void TakeDamage(int damage)
@@ -226,22 +214,6 @@ public class EnemyAI : MonoBehaviour
         dungeonGenerator.CheckRoomCompletion(dungeonGenerator.CurrentRoomPosition);
     }
     
-    IEnumerator NextMoveAfterDelay()
-    {
-        yield return new WaitForSeconds(0.2f);
-        moved = false;
-    }
-    
-    private void LateUpdate()
-    {
-        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
-        {
-            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
-            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
-            transform.position = new Vector3(snappedX, snappedY, 0);
-        }
-    }
-    
     void CompleteTurn()
     {
         isTurnComplete = true;
@@ -249,6 +221,7 @@ public class EnemyAI : MonoBehaviour
         rb.constraints = RigidbodyConstraints2D.FreezeAll;
         movesLeft = 2;
         failedMoves.Clear();
+        isBusy = false;
     }
     
     void OnTriggerEnter2D(Collider2D collision)
@@ -257,7 +230,6 @@ public class EnemyAI : MonoBehaviour
         {
             Debug.Log("Failed move");
             transform.position = startingPosition;
-            isMoving = false;
             movesLeft++;
             Vector3? failedMove = MoveTowardsInfo(targetPosition);
             if (failedMove != null)
@@ -265,5 +237,25 @@ public class EnemyAI : MonoBehaviour
                 failedMoves.Add(failedMove.Value);
             }
         }
+    }
+    
+    bool checkValidPosition()
+    {
+        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
+        {
+            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
+            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
+            transform.position = new Vector3(snappedX, snappedY, 0);
+        }
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.1f);
+        foreach (Collider2D collider in colliders)
+        {
+            if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Player") || collider.gameObject.CompareTag("Enemy") || collider.gameObject.CompareTag("Ally")))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
