@@ -28,6 +28,7 @@ public class Player : MonoBehaviour
         //transform.position = new Vector3(Mathf.Round(transform.position.x),Mathf.Round(transform.position.y),transform.position.z);
         targetPosition = transform.position;
         previousPosition = transform.position;
+        transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
 
     void Update()
@@ -123,8 +124,9 @@ public class Player : MonoBehaviour
         if (health <= 0)
         {
             Debug.Log("Died");
-            RestartAfterDelay();
+            StartCoroutine(RestartAfterDelay());
         }
+        transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     
     IEnumerator RestartAfterDelay()

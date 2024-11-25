@@ -47,6 +47,7 @@ public class CompanionAI_FSM : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         startingPosition= transform.position;
         HealTarget = player;
+        transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     public void PerformActions()
     {
@@ -158,10 +159,14 @@ public class CompanionAI_FSM : MonoBehaviour
         if (HealTarget == transform)
         {
             health += healAmount;
+            transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
+            healCount--;
+            movesLeft--;
         }
         else if (Vector3.Distance(transform.position, HealTarget.position) <= moveDistance)
         {
             HealTarget.GetComponent<Player>().health += healAmount;
+            HealTarget.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(HealTarget.GetComponent<Player>());
             healCount--;
             movesLeft--;
         }
@@ -250,6 +255,7 @@ public class CompanionAI_FSM : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     
     IEnumerator NextMoveAfterDelay()

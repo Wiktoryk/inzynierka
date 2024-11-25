@@ -35,15 +35,24 @@ public class Combat : MonoBehaviour
 
     void PerformCombat(GameObject enemy)
     {
-        if (Vector3.Distance(player.transform.position, enemy.transform.position) < 1.0f && player.GetComponent<Player>().movesLeft > 0)
+        if (Vector3.Distance(player.transform.position, enemy.transform.position) < 2.0f && player.GetComponent<Player>().movesLeft > 0)
         {
-            enemy.GetComponent<EnemyAI>().TakeDamage(10);
-            Debug.Log("Attacked " + enemy.name);
-            player.GetComponent<Player>().movesLeft--;
+            if(Vector3.Distance(player.transform.position, enemy.transform.position) < 1.0f)
+            {
+                enemy.GetComponent<EnemyAI>().TakeDamage(10);
+                Debug.Log("Attacked " + enemy.name);
+                player.GetComponent<Player>().movesLeft--;
+            }
+            else
+            {
+                enemy.GetComponent<EnemyAI>().TakeDamage(5);
+                Debug.Log("Attacked " + enemy.name);
+                player.GetComponent<Player>().movesLeft--;
+            }
         }
         else
         {
-            Debug.Log("Enemy is too far away");
+            Debug.Log("Unable to attack enemy");
         }
     }
 }

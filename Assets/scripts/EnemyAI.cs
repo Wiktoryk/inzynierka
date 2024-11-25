@@ -42,6 +42,7 @@ public class EnemyAI : MonoBehaviour
         currentState = EnemyState.Idle;
         rb = GetComponent<Rigidbody2D>();
         startingPosition = transform.position;
+        transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     public void PerformActions()
     {
@@ -204,6 +205,7 @@ public class EnemyAI : MonoBehaviour
         {
             Die();
         }
+        transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     void Die()
     {
