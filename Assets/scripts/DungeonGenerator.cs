@@ -181,7 +181,7 @@ public class DungeonGenerator : MonoBehaviour
     {
         EnemySpawner enemySpawner = Instantiate(EnemySpawnerPrefab, roomData.RoomObject.transform.position, Quaternion.identity).GetComponent<EnemySpawner>();
         enemySpawner.GameObject().SetActive(true);
-        enemySpawner.Init(roomData.RoomObject.transform);
+        enemySpawner.Init(roomData);
         roomData.Enemies = enemySpawner.enemies;
         TurnManager tm = GameObject.Find("TurnManager").GetComponent<TurnManager>();
         tm.enemies = roomData.Enemies;

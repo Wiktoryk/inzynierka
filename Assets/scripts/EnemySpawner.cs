@@ -15,14 +15,28 @@ public class EnemySpawner : MonoBehaviour
         
     }
 
-    public void Init(Transform roomPosition)
+    public void Init(RoomData roomPosition)
     {
         enemies.Clear();
-        currentRoomPosition = roomPosition;
+        Vector3 currentRoomPositionV = roomPosition.RoomObject.transform.position;
+        if (roomPosition.Position.x > 0)
+        {
+            currentRoomPositionV.x += 7;
+        }
+
+        if (roomPosition.Position.y > 0)
+        {
+            currentRoomPositionV.y += 7;
+        }
+
+        if (roomPosition.Position.y < 0)
+        {
+            currentRoomPositionV.y += 7;
+        }
         for (int i = 0; i < numberOfEnemies; i++)
         {
-            int xCoord = Random.Range((int)currentRoomPosition.position.x-5, (int)currentRoomPosition.position.x+5);
-            int yCoord = Random.Range((int)currentRoomPosition.position.y-3, (int)currentRoomPosition.position.y+3);
+            int xCoord = Random.Range((int)currentRoomPositionV.x-5, (int)currentRoomPositionV.x+5);
+            int yCoord = Random.Range((int)currentRoomPositionV.y-3, (int)currentRoomPositionV.y+3);
             float snappedX = xCoord * 0.64f + 0.32f;
             float snappedY = yCoord * 0.64f + 0.32f;
             Transform spawnPoint = new GameObject().transform;

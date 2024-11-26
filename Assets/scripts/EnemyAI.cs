@@ -134,11 +134,11 @@ public class EnemyAI : MonoBehaviour
             {
                 if (companion.GetComponent<CompanionAI_FSM>().enabled)
                 {
-                    companion.GetComponent<CompanionAI_FSM>().TakeDamage(10);
+                    companion.GetComponent<CompanionAI_FSM>().TakeDamage(5);
                 }
                 else
                 {
-                    companion.GetComponent<CompanionAI_CEM>().TakeDamage(10);
+                    companion.GetComponent<CompanionAI_CEM>().TakeDamage(5);
                 }
 
                 currentState = EnemyState.Idle;
