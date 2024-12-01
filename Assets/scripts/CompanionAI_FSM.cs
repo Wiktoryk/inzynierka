@@ -20,7 +20,6 @@ public class CompanionAI_FSM : MonoBehaviour
     public bool isTurnComplete = false;
     public CompanionState currentState;
     public Transform player;
-    private Rigidbody2D rb;
     public int health = 50;
     public float moveSpeed = 15f;
     public int movesLeft = 2;
@@ -44,7 +43,6 @@ public class CompanionAI_FSM : MonoBehaviour
     void Start()
     {
         currentState = CompanionState.Idle;
-        rb = GetComponent<Rigidbody2D>();
         startingPosition= transform.position;
         HealTarget = player;
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
@@ -60,8 +58,8 @@ public class CompanionAI_FSM : MonoBehaviour
                 healCount = 2;
                 turnCounter = 0;
             }
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             String states = "";
+            String moves = "";
             while (movesLeft > 0)
             {
                 if (health < 30 && healCount > 0)
@@ -93,8 +91,10 @@ public class CompanionAI_FSM : MonoBehaviour
                         Heal();
                         break;
                 }
+                moves += transform.position + ";";
             }
             Debug.Log(states);
+            Debug.Log(moves);
             CompleteTurn();
         }
     }
@@ -201,22 +201,11 @@ public class CompanionAI_FSM : MonoBehaviour
         }
     }
 
-    // private void LateUpdate()
-    // {
-    //     if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
-    //     {
-    //         float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
-    //         float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
-    //         transform.position = new Vector3(snappedX, snappedY, 0);
-    //     }
-    // }
-
     void CompleteTurn()
     {
         isTurnComplete = true;
         isTurn = false;
         
-        rb.constraints = RigidbodyConstraints2D.FreezeAll;
         movesLeft = 2;
         failedMoves.Clear();
         isBusy = false;
@@ -224,24 +213,26 @@ public class CompanionAI_FSM : MonoBehaviour
     
     Vector3? MoveTowardsInfo(Vector3 targetPositionM)
     {
-        List<Vector3> directions = new List<Vector3>
+        Vector3 difference = targetPositionM - transform.position;
+
+        List<Vector3> possibleMoves = new List<Vector3>
         {
-            Vector3.up * moveDistance,
-            Vector3.down * moveDistance,
-            Vector3.left * moveDistance,
-            Vector3.right * moveDistance
+            new Vector3(Mathf.Sign(difference.x) * moveDistance, 0, 0),
+            new Vector3(0, Mathf.Sign(difference.y) * moveDistance, 0)
         };
-        
-        directions.Sort((a, b) =>
-            Vector3.Distance(transform.position + a, targetPositionM)
-                .CompareTo(Vector3.Distance(transform.position + b, targetPositionM))
-        );
-        
-        foreach (var direction in directions)
+
+        if (Mathf.Abs(difference.x) > Mathf.Abs(difference.y))
         {
-            if (!failedMoves.Contains(direction))
+            if (!failedMoves.Contains(possibleMoves[0]))
             {
-                return direction;
+                return possibleMoves[0];
+            }
+        }
+        else if (Mathf.Abs(difference.y) > 0)
+        {
+            if (!failedMoves.Contains(possibleMoves[1]))
+            {
+                return possibleMoves[1];
             }
         }
 
@@ -258,34 +249,29 @@ public class CompanionAI_FSM : MonoBehaviour
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     
-    IEnumerator NextMoveAfterDelay()
-    {
-        yield return new WaitForSeconds(0.5f);
-    }
-    
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (isTurn && (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Player")))
-        {
-            transform.position = startingPosition;
-            movesLeft++;
-            Debug.Log("Failed move companion");
-            Vector3? failedMove = MoveTowardsInfo(targetPosition);
-            if (failedMove != null)
-            {
-                failedMoves.Add(failedMove.Value);
-            }
-        }
-    }
+    // void OnTriggerEnter2D(Collider2D collision)
+    // {
+    //     if (isTurn && (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Player")))
+    //     {
+    //         transform.position = startingPosition;
+    //         movesLeft++;
+    //         Debug.Log("Failed move companion");
+    //         Vector3? failedMove = MoveTowardsInfo(targetPosition);
+    //         if (failedMove != null)
+    //         {
+    //             failedMoves.Add(failedMove.Value);
+    //         }
+    //     }
+    // }
 
     bool checkValidPosition()
     {
-        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
-        {
-            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
-            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
-            transform.position = new Vector3(snappedX, snappedY, 0);
-        }
+        // if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
+        // {
+        //     float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
+        //     float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
+        //     transform.position = new Vector3(snappedX, snappedY, 0);
+        // }
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.1f);
         foreach (Collider2D collider in colliders)
         {

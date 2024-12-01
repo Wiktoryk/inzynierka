@@ -174,24 +174,26 @@ public class EnemyAI : MonoBehaviour
     
     Vector3? MoveTowardsInfo(Vector3 targetPositionM)
     {
-        List<Vector3> directions = new List<Vector3>
+        Vector3 difference = targetPositionM - transform.position;
+
+        List<Vector3> possibleMoves = new List<Vector3>
         {
-            Vector3.up * moveDistance,
-            Vector3.down * moveDistance,
-            Vector3.left * moveDistance,
-            Vector3.right * moveDistance
+            new Vector3(Mathf.Sign(difference.x) * moveDistance, 0, 0),
+            new Vector3(0, Mathf.Sign(difference.y) * moveDistance, 0)
         };
-        
-        directions.Sort((a, b) =>
-            Vector3.Distance(transform.position + a, targetPositionM)
-                .CompareTo(Vector3.Distance(transform.position + b, targetPositionM))
-        );
-        
-        foreach (var direction in directions)
+
+        if (Mathf.Abs(difference.x) > Mathf.Abs(difference.y))
         {
-            if (!failedMoves.Contains(direction))
+            if (!failedMoves.Contains(possibleMoves[0]))
             {
-                return direction;
+                return possibleMoves[0];
+            }
+        }
+        else if (Mathf.Abs(difference.y) > 0)
+        {
+            if (!failedMoves.Contains(possibleMoves[1]))
+            {
+                return possibleMoves[1];
             }
         }
 
@@ -226,20 +228,20 @@ public class EnemyAI : MonoBehaviour
         isBusy = false;
     }
     
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Wall") || collision.CompareTag("Ally") || collision.CompareTag("Player") || collision.CompareTag("Enemy"))
-        {
-            Debug.Log("Failed move");
-            transform.position = startingPosition;
-            movesLeft++;
-            Vector3? failedMove = MoveTowardsInfo(targetPosition);
-            if (failedMove != null)
-            {
-                failedMoves.Add(failedMove.Value);
-            }
-        }
-    }
+    // void OnTriggerEnter2D(Collider2D collision)
+    // {
+    //     if (collision.CompareTag("Wall") || collision.CompareTag("Ally") || collision.CompareTag("Player") || collision.CompareTag("Enemy"))
+    //     {
+    //         Debug.Log("Failed move");
+    //         transform.position = startingPosition;
+    //         movesLeft++;
+    //         Vector3? failedMove = MoveTowardsInfo(targetPosition);
+    //         if (failedMove != null)
+    //         {
+    //             failedMoves.Add(failedMove.Value);
+    //         }
+    //     }
+    // }
     
     bool checkValidPosition()
     {
