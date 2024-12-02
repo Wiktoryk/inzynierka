@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using Random = UnityEngine.Random;
 
@@ -195,6 +196,10 @@ public class DungeonGenerator : MonoBehaviour
             {
                 roomData.IsCompleted = true;
                 ActivateExits(roomData);
+                if (roomData.RoomObject.name.Contains("End"))
+                {
+                    SceneManager.LoadScene("WinScene");
+                }
             }
         }
     }

@@ -8,7 +8,6 @@ public class Player : MonoBehaviour
 {
     private int horizontal;
     private int vertical;
-    private Rigidbody2D rb;
     
     public float moveDistance = 0.64f;
     public float moveSpeed = 64f;
@@ -24,8 +23,6 @@ public class Player : MonoBehaviour
     public int health = 50;
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        //transform.position = new Vector3(Mathf.Round(transform.position.x),Mathf.Round(transform.position.y),transform.position.z);
         targetPosition = transform.position;
         previousPosition = transform.position;
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
@@ -38,7 +35,6 @@ public class Player : MonoBehaviour
             if (!isTurnComplete && !isMoving && movesLeft > 0)
             {
                 HandleMovementInput();
-                rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             }
 
             MoveToTarget();
@@ -46,7 +42,6 @@ public class Player : MonoBehaviour
             {
                 isTurnComplete = true;
                 movesLeft = 2;
-                rb.constraints = RigidbodyConstraints2D.FreezeAll;
             }
         }
     }
@@ -132,6 +127,6 @@ public class Player : MonoBehaviour
     IEnumerator RestartAfterDelay()
     {
         yield return new WaitForSeconds(1f);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene("Scenes/Start");
     }
 }

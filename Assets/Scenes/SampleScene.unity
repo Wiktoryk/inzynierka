@@ -905,7 +905,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: cab997b0cee9d8d469a5a8e511a09bcd, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -6164,12 +6164,12 @@ Tilemap:
   - m_RefCount: 0
     m_Data: {fileID: 0}
   - m_RefCount: 96
-    m_Data: {fileID: 11400000, guid: 7646c7d9ea5765744866549813f3d414, type: 2}
+    m_Data: {fileID: 11400000, guid: 9df91f274f99fca43bddc8feb1429f1e, type: 2}
   m_TileSpriteArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}
   - m_RefCount: 96
-    m_Data: {fileID: 21300000, guid: 392126867501f4947b7d5dc394e71a81, type: 3}
+    m_Data: {fileID: 21300000, guid: 5fd9144120e4b884fa74a88a39060812, type: 3}
   m_TileMatrixArray:
   - m_RefCount: 96
     m_Data:
@@ -10134,7 +10134,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_TargetDisplay: 0
 --- !u!1 &1132576451
 GameObject:
