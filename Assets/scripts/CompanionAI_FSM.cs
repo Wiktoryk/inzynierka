@@ -11,7 +11,8 @@ public enum CompanionState
     Idle,
     FollowPlayer,
     Attack,
-    Heal
+    Heal,
+    Evade
 }
 
 public class CompanionAI_FSM : MonoBehaviour
@@ -67,10 +68,14 @@ public class CompanionAI_FSM : MonoBehaviour
                     currentState = CompanionState.Heal;
                     HealTarget = transform;
                 }
-                if (player.GetComponent<Player>().health < 50 && healCount > 0)
+                else if (player.GetComponent<Player>().health < 50 && healCount > 0)
                 {
                     currentState = CompanionState.Heal;
                     HealTarget = player;
+                }
+                else if (health < 30)
+                {
+                    currentState = CompanionState.Evade;
                 }
                 switch (currentState)
                 {
@@ -89,6 +94,10 @@ public class CompanionAI_FSM : MonoBehaviour
                     case CompanionState.Heal:
                         states += "Heal;";
                         Heal();
+                        break;
+                    case CompanionState.Evade:
+                        states += "Evade;";
+                        EvadeEnemies();
                         break;
                 }
                 moves += transform.position + ";";
@@ -237,6 +246,34 @@ public class CompanionAI_FSM : MonoBehaviour
         }
 
         return null;
+    }
+    
+    private void EvadeEnemies()
+    {
+        List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
+        Vector3 evadeDirection = Vector3.zero;
+        foreach (GameObject enemy in allEnemies)
+        {
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+
+            if (distance < 3f)
+            {
+                Vector3 directionAway = transform.position - enemy.transform.position;
+                evadeDirection += directionAway.normalized;
+            }
+        }
+        if (evadeDirection != Vector3.zero)
+        {
+            evadeDirection.Normalize();
+            targetPosition = transform.position + evadeDirection;
+            startingPosition = transform.position;
+            movesLeft--;
+            MoveTowardsTarget();
+        }
+        else
+        {
+            currentState = CompanionState.FollowPlayer;
+        }
     }
     
     public void TakeDamage(int damage)
