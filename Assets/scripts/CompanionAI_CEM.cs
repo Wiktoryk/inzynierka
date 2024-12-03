@@ -19,34 +19,41 @@ public class CompanionAI_CEM : MonoBehaviour
     public float followDistance = 1.5f;
     public int supportRange = 3;
     
-    private Rigidbody2D rb;
     private int movesLeft = 2;
     private Vector3 targetPosition;
     private Vector3 startingPosition;
-    private bool isMoving = false;
+    
+    public float attackRange = 1.0f;
+    public int attackDamage = 10;
     
     public float moveDistance = 0.64f;
     private List<Vector3> failedMoves = new List<Vector3>();
     
     public bool isTurnComplete = false;
     public bool isTurn = false;
+    private bool isBusy = false;
     
     public int health = 50;
     void Start()
     {
         currentState = CompanionCEMState.Idle;
-        rb = GetComponent<Rigidbody2D>();
+        startingPosition= transform.position;
+        transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
 
     
     public void PerformActions()
     {
-        if (isTurn && !isTurnComplete)
+        if (isTurn && !isTurnComplete && !isBusy)
         {
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-            UpdateEnemiesList();
-            ChooseBestAction();
-            PerformAction();
+            isBusy = true;
+            while (movesLeft > 0)
+            {
+                UpdateEnemiesList();
+                ChooseBestAction();
+                PerformAction();
+            }
+            EndTurn();
         }
     }
     
@@ -71,7 +78,6 @@ public class CompanionAI_CEM : MonoBehaviour
         if (empowermentSupport > maxEmpowermentValue) { maxEmpowermentValue = empowermentSupport; bestState = CompanionCEMState.SupportPlayer; }
 
         currentState = bestState;
-        Debug.Log(currentState);
     }
     
     float CalculateIdleEmpowerment()
@@ -91,7 +97,7 @@ public class CompanionAI_CEM : MonoBehaviour
         foreach (GameObject enemy in enemies)
         {
             float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distanceToEnemy < 1.0f)
+            if (distanceToEnemy < attackRange)
             {
                 maxAttackEmpowerment = Mathf.Max(maxAttackEmpowerment, 2.0f);
             }
@@ -110,7 +116,6 @@ public class CompanionAI_CEM : MonoBehaviour
         switch (currentState)
         {
             case CompanionCEMState.Idle:
-                Idle();
                 break;
             case CompanionCEMState.FollowPlayer:
                 FollowPlayer();
@@ -122,41 +127,52 @@ public class CompanionAI_CEM : MonoBehaviour
                 SupportPlayer();
                 break;
         }
-        movesLeft--;
-        if (movesLeft == 0)
-        {
-            EndTurn();
-        }
-    }
-    
-    void Idle()
-    {
-        // Do nothing
     }
     
     void FollowPlayer()
     {
-        targetPosition = player.position;
-        isMoving = true;
         startingPosition = transform.position;
-        StartCoroutine(MoveTowardsTarget());
+        targetPosition = player.position;
+        movesLeft--;
+        MoveTowardsTarget();
     }
     
     void AttackNearestEnemy()
     {
-        GameObject nearestEnemy = GetNearestEnemy();
-        if (nearestEnemy != null)
+        foreach (GameObject enemy in enemies)
         {
-            nearestEnemy.GetComponent<EnemyAI>().TakeDamage(10);
+            if (Vector3.Distance(transform.position, enemy.transform.position) < attackRange)
+            {
+                enemy.GetComponent<EnemyAI>().TakeDamage(attackDamage);
+                movesLeft--;
+                break;
+            }
+        
+            // int result = Random.Range(0, 1);
+            // if (result == 1)
+            // {
+            //     if (Vector3.Distance(transform.position, enemy.transform.position) < rangedAttackRange)
+            //     {
+            //         enemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
+            //         movesLeft--;
+            //         break;
+            //     }
+            //     targetPosition = enemy.transform.position;
+            //     startingPosition = transform.position;
+            //     movesLeft--;
+            //     MoveTowardsTarget();
+            //     break;
+            //
+            // }
         }
     }
     
     void SupportPlayer()
     {
-        isMoving = true;
         startingPosition = transform.position;
         targetPosition = player.position + (transform.position - player.position).normalized * followDistance;
-        StartCoroutine(MoveTowardsTarget());
+        movesLeft--;
+        MoveTowardsTarget();
     }
     
     GameObject GetNearestEnemy()
@@ -178,83 +194,57 @@ public class CompanionAI_CEM : MonoBehaviour
     {
         isTurnComplete = true;
         isTurn = false;
+        isBusy = false;
         movesLeft = 2;
-        rb.constraints = RigidbodyConstraints2D.FreezeAll;
     }
     
-    private void LateUpdate()
-    {
-        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
-        {
-            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
-            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
-            transform.position = new Vector3(snappedX, snappedY, 0);
-        }
-    }
-    
-    IEnumerator MoveTowardsTarget()
+    void MoveTowardsTarget()
     {
         Vector3? trueTargetPosition = MoveTowardsInfo(targetPosition);
         if (trueTargetPosition != null)
         {
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
-            while (isMoving && Vector3.Distance(transform.position, trueTargetPositionV) > 0.01f)
-            {
-                transform.position =
-                    Vector3.MoveTowards(transform.position, trueTargetPositionV, moveSpeed * Time.deltaTime);
-                yield return null;
-            }
             transform.position = trueTargetPositionV;
+            if (!checkValidPosition())
+            {
+                movesLeft++;
+                transform.position = startingPosition;
+                failedMoves.Add(trueTargetPosition.Value);
+            }
+            else
+            {
+                failedMoves.Clear();
+            }
         }
-
-        isMoving = false;
     }
     
-    Vector3? MoveTowardsInfo(Vector3 targetPosition)
+    Vector3? MoveTowardsInfo(Vector3 targetPositionM)
     {
-        Vector3 move = Vector3.zero;
+        Vector3 difference = targetPositionM - transform.position;
 
-        if (targetPosition.x - transform.position.x < targetPosition.y - transform.position.y)
+        List<Vector3> possibleMoves = new List<Vector3>
         {
-            if (targetPosition.y > transform.position.y && !failedMoves.Contains(Vector3.up * moveDistance))
+            new Vector3(Mathf.Sign(difference.x) * moveDistance, 0, 0),
+            new Vector3(0, Mathf.Sign(difference.y) * moveDistance, 0)
+        };
+
+        if (Mathf.Abs(difference.x) > Mathf.Abs(difference.y))
+        {
+            if (!failedMoves.Contains(possibleMoves[0]))
             {
-                move = Vector3.up * moveDistance;
-            }
-            else if (!failedMoves.Contains(Vector3.down * moveDistance))
-            {
-                move = Vector3.down * moveDistance;
+                return possibleMoves[0];
             }
         }
-        else
+        else if (Mathf.Abs(difference.y) > 0)
         {
-            if (targetPosition.x > transform.position.x && !failedMoves.Contains(Vector3.right * moveDistance))
+            if (!failedMoves.Contains(possibleMoves[1]))
             {
-                move = Vector3.right * moveDistance;
-            }
-            else if (!failedMoves.Contains(Vector3.left * moveDistance))
-            {
-                move = Vector3.left * moveDistance;
+                return possibleMoves[1];
             }
         }
 
-        if (move != Vector3.zero && IsMoveValid(move)) { return move; }
-        failedMoves.Add(move);
         return null;
-    }
-    
-    bool IsMoveValid(Vector3 direction)
-    {
-        Vector3 potentialPosition = transform.position + direction;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(potentialPosition, 0.1f);
-        foreach (Collider2D collider in colliders)
-        {
-            if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Player") || collider.gameObject.CompareTag("Enemy")))
-            {
-                return false;
-            }
-        }
-        return true;
     }
     
     public void TakeDamage(int damage)
@@ -264,5 +254,19 @@ public class CompanionAI_CEM : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+    
+    bool checkValidPosition()
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.1f);
+        foreach (Collider2D collider in colliders)
+        {
+            if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Player") || collider.gameObject.CompareTag("Enemy")))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

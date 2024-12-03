@@ -320,5 +320,6 @@ public class CompanionAI_FSM : MonoBehaviour
 
         return true;
     }
+
 }
 
