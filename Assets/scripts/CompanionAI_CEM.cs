@@ -10,6 +10,34 @@ public enum CompanionCEMState
     SupportPlayer
 }
 
+public struct originalState
+{
+    public Vector3 position;
+    public int movesLeft;
+    public int health;
+    public int playerHealth;
+    public List<GameObject> enemyList;
+    public int enemyHealth;
+    public int attacked;
+    
+    public originalState(Vector3 position, int movesLeft, int health, int playerHealth, List<GameObject> enemyList)
+    {
+        this.position = position;
+        this.movesLeft = movesLeft;
+        this.health = health;
+        this.playerHealth = playerHealth;
+        this.enemyList = enemyList;
+        this.enemyHealth = 0;
+        this.attacked = -1;
+    }
+    
+    public void SetEnemyHealth(int health, int index)
+    {
+        enemyHealth = health;
+        attacked = index;
+    }
+}
+
 public class CompanionAI_CEM : MonoBehaviour
 {
     public CompanionCEMState currentState;
@@ -50,8 +78,12 @@ public class CompanionAI_CEM : MonoBehaviour
             while (movesLeft > 0)
             {
                 UpdateEnemiesList();
-                ChooseBestAction();
-                PerformAction();
+                var bestSequence = ChooseBestTwoActionSequence();
+                PerformAction(bestSequence.Item1);
+                if (movesLeft > 0)
+                {
+                    PerformAction(bestSequence.Item2);
+                }
             }
             EndTurn();
         }
@@ -61,6 +93,104 @@ public class CompanionAI_CEM : MonoBehaviour
     {
         enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
     }
+    
+    (CompanionCEMState, CompanionCEMState) ChooseBestTwoActionSequence()
+    {
+        float maxEmpowermentValue = float.MinValue;
+        CompanionCEMState bestFirstAction = currentState;
+        CompanionCEMState bestSecondAction = currentState;
+
+        CompanionCEMState[] possibleStates = new CompanionCEMState[]
+        {
+            CompanionCEMState.Idle,
+            CompanionCEMState.FollowPlayer,
+            CompanionCEMState.AttackEnemy,
+            CompanionCEMState.SupportPlayer
+        };
+
+        // Evaluate all two-action sequences
+        foreach (var firstAction in possibleStates)
+        {
+            foreach (var secondAction in possibleStates)
+            {
+                float combinedEmpowerment = CalculateTwoActionEmpowerment(firstAction, secondAction);
+
+                if (combinedEmpowerment > maxEmpowermentValue)
+                {
+                    maxEmpowermentValue = combinedEmpowerment;
+                    bestFirstAction = firstAction;
+                    bestSecondAction = secondAction;
+                }
+            }
+        }
+
+        return (bestFirstAction, bestSecondAction);
+    }
+    
+    float CalculateTwoActionEmpowerment(CompanionCEMState firstAction, CompanionCEMState secondAction)
+    {
+        float empowermentAfterFirst = CalculateEmpowerment(firstAction);
+        originalState ogState = SimulateAction(firstAction);
+        float empowermentAfterSecond = CalculateEmpowerment(secondAction);
+        RevertSimulation(ogState);
+
+        return empowermentAfterFirst + empowermentAfterSecond;
+    }
+    
+    float CalculateEmpowerment(CompanionCEMState state)
+    {
+        switch (state)
+        {
+            case CompanionCEMState.Idle: return CalculateIdleEmpowerment();
+            case CompanionCEMState.FollowPlayer: return CalculateFollowPlayerEmpowerment();
+            case CompanionCEMState.AttackEnemy: return CalculateAttackEmpowerment();
+            case CompanionCEMState.SupportPlayer: return CalculateSupportPlayerEmpowerment();
+            default: return float.MinValue;
+        }
+    }
+    
+    originalState SimulateAction(CompanionCEMState action)
+    {
+        originalState originalState = new originalState(transform.position, movesLeft, health, player.GetComponent<Player>().health, new List<GameObject>(enemies));
+
+        switch (action)
+        {
+            case CompanionCEMState.Idle:
+                break;
+
+            case CompanionCEMState.FollowPlayer:
+                FollowPlayer();
+                break;
+
+            case CompanionCEMState.AttackEnemy:
+                SimulateAttackEnemy(ref originalState);
+                break;
+
+            case CompanionCEMState.SupportPlayer:
+                SupportPlayer();
+                break;
+
+            default:
+                Debug.LogWarning($"Unknown action: {action}");
+                break;
+        }
+
+        return originalState;
+    }
+    
+    void RevertSimulation(originalState originalstate)
+    {
+        transform.position = originalstate.position;
+        movesLeft = originalstate.movesLeft;
+        health = originalstate.health;
+        player.GetComponent<Player>().health = originalstate.playerHealth;
+        enemies = new List<GameObject>(originalstate.enemyList);
+        if (originalstate.attacked >= 0)
+        {
+            enemies[originalstate.attacked].GetComponent<EnemyAI>().health = originalstate.enemyHealth;
+        }
+    }
+
     
     void ChooseBestAction()
     {
@@ -111,9 +241,9 @@ public class CompanionAI_CEM : MonoBehaviour
         return (distanceToPlayer < supportRange) ? 1.8f : 0.3f;
     }
     
-    void PerformAction()
+    void PerformAction(CompanionCEMState action)
     {
-        switch (currentState)
+        switch (action)
         {
             case CompanionCEMState.Idle:
                 break;
@@ -164,6 +294,20 @@ public class CompanionAI_CEM : MonoBehaviour
             //     break;
             //
             // }
+        }
+    }
+
+    void SimulateAttackEnemy(ref originalState originalState)
+    {
+        foreach (GameObject enemy in enemies)
+        {
+            if (Vector3.Distance(transform.position, enemy.transform.position) < attackRange)
+            {
+                originalState.SetEnemyHealth(enemy.GetComponent<EnemyAI>().health, enemies.IndexOf(enemy));
+                enemy.GetComponent<EnemyAI>().SimulateTakeDamage(attackDamage);
+                movesLeft--;
+                break;
+            }
         }
     }
     

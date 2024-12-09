@@ -209,6 +209,11 @@ public class EnemyAI : MonoBehaviour
         }
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
+    
+    public void SimulateTakeDamage(int damage)
+    {
+        health -= damage;
+    }
     void Die()
     {
         Destroy(gameObject);
