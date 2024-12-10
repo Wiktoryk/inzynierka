@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +8,8 @@ public enum CompanionCEMState
     Idle,
     FollowPlayer,
     AttackEnemy,
-    SupportPlayer
+    Heal,
+    Evade
 }
 
 public struct originalState
@@ -52,7 +54,13 @@ public class CompanionAI_CEM : MonoBehaviour
     private Vector3 startingPosition;
     
     public float attackRange = 1.0f;
+    public float rangedAttackRange = 2.0f;
     public int attackDamage = 10;
+    public int rangedAttackDamage = 5;
+    public int healCount = 2;
+    public int healAmount = 10;
+    public int turnCounter = 0;
+    public Transform HealTarget;
     
     public float moveDistance = 0.64f;
     private List<Vector3> failedMoves = new List<Vector3>();
@@ -67,6 +75,7 @@ public class CompanionAI_CEM : MonoBehaviour
         currentState = CompanionCEMState.Idle;
         startingPosition= transform.position;
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
+        HealTarget = player;
     }
 
     
@@ -74,17 +83,26 @@ public class CompanionAI_CEM : MonoBehaviour
     {
         if (isTurn && !isTurnComplete && !isBusy)
         {
+            turnCounter++;
+            if (turnCounter % 3 == 0)
+            {
+                healCount = 2;
+                turnCounter = 0;
+            }
             isBusy = true;
+            String log = "";
             while (movesLeft > 0)
             {
                 UpdateEnemiesList();
                 var bestSequence = ChooseBestTwoActionSequence();
+                log += $"{bestSequence.Item1}, {bestSequence.Item2}";
                 PerformAction(bestSequence.Item1);
                 if (movesLeft > 0)
                 {
                     PerformAction(bestSequence.Item2);
                 }
             }
+            Debug.Log(log);
             EndTurn();
         }
     }
@@ -105,10 +123,10 @@ public class CompanionAI_CEM : MonoBehaviour
             CompanionCEMState.Idle,
             CompanionCEMState.FollowPlayer,
             CompanionCEMState.AttackEnemy,
-            CompanionCEMState.SupportPlayer
+            CompanionCEMState.Heal,
+            CompanionCEMState.Evade
         };
-
-        // Evaluate all two-action sequences
+        
         foreach (var firstAction in possibleStates)
         {
             foreach (var secondAction in possibleStates)
@@ -144,7 +162,8 @@ public class CompanionAI_CEM : MonoBehaviour
             case CompanionCEMState.Idle: return CalculateIdleEmpowerment();
             case CompanionCEMState.FollowPlayer: return CalculateFollowPlayerEmpowerment();
             case CompanionCEMState.AttackEnemy: return CalculateAttackEmpowerment();
-            case CompanionCEMState.SupportPlayer: return CalculateSupportPlayerEmpowerment();
+            case CompanionCEMState.Heal: return CalculateHealEmpowerment();
+            case CompanionCEMState.Evade: return CalculateEvadeEmpowerment();
             default: return float.MinValue;
         }
     }
@@ -166,8 +185,12 @@ public class CompanionAI_CEM : MonoBehaviour
                 SimulateAttackEnemy(ref originalState);
                 break;
 
-            case CompanionCEMState.SupportPlayer:
-                SupportPlayer();
+            case CompanionCEMState.Heal:
+                Heal();
+                break;
+            
+            case CompanionCEMState.Evade:
+                Evade();
                 break;
 
             default:
@@ -190,25 +213,6 @@ public class CompanionAI_CEM : MonoBehaviour
             enemies[originalstate.attacked].GetComponent<EnemyAI>().health = originalstate.enemyHealth;
         }
     }
-
-    
-    void ChooseBestAction()
-    {
-        float maxEmpowermentValue = float.MinValue;
-        CompanionCEMState bestState = currentState;
-
-        float empowermentIdle = CalculateIdleEmpowerment();
-        float empowermentFollow = CalculateFollowPlayerEmpowerment();
-        float empowermentAttack = CalculateAttackEmpowerment();
-        float empowermentSupport = CalculateSupportPlayerEmpowerment();
-
-        if (empowermentIdle > maxEmpowermentValue) { maxEmpowermentValue = empowermentIdle; bestState = CompanionCEMState.Idle; }
-        if (empowermentFollow > maxEmpowermentValue) { maxEmpowermentValue = empowermentFollow; bestState = CompanionCEMState.FollowPlayer; }
-        if (empowermentAttack > maxEmpowermentValue) { maxEmpowermentValue = empowermentAttack; bestState = CompanionCEMState.AttackEnemy; }
-        if (empowermentSupport > maxEmpowermentValue) { maxEmpowermentValue = empowermentSupport; bestState = CompanionCEMState.SupportPlayer; }
-
-        currentState = bestState;
-    }
     
     float CalculateIdleEmpowerment()
     {
@@ -227,18 +231,51 @@ public class CompanionAI_CEM : MonoBehaviour
         foreach (GameObject enemy in enemies)
         {
             float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distanceToEnemy < attackRange)
+            if (distanceToEnemy < attackRange && enemy.GetComponent<EnemyAI>().health > 0)
             {
                 maxAttackEmpowerment = Mathf.Max(maxAttackEmpowerment, 2.0f);
             }
         }
         return maxAttackEmpowerment;
     }
-    
-    float CalculateSupportPlayerEmpowerment()
+
+    float CalculateHealEmpowerment()
     {
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        return (distanceToPlayer < supportRange) ? 1.8f : 0.3f;
+        float empowerment = 0;
+        if (healCount <= 0)
+        {
+            return 0;
+        }
+        if (health < 30)
+        {
+            empowerment += (30 - health) * 0.2f;
+        }
+
+        int playerHealth = player.GetComponent<Player>().health;
+        if (playerHealth < 50)
+        {
+            empowerment += (50 - playerHealth) * 0.2f;
+        }
+        return empowerment;
+    }
+
+    float CalculateEvadeEmpowerment()
+    {
+        float empowerment = 0;
+        if (health < 30)
+        {
+            empowerment += (30 - health) * 0.15f;
+        }
+        foreach (var enemy in enemies)
+        {
+            float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
+
+            if (distanceToEnemy < 3.0f)
+            {
+                empowerment += (3.0f - distanceToEnemy) * 0.2f;
+            }
+        }
+        return empowerment;
     }
     
     void PerformAction(CompanionCEMState action)
@@ -253,8 +290,11 @@ public class CompanionAI_CEM : MonoBehaviour
             case CompanionCEMState.AttackEnemy:
                 AttackNearestEnemy();
                 break;
-            case CompanionCEMState.SupportPlayer:
-                SupportPlayer();
+            case CompanionCEMState.Heal:
+                Heal();
+                break;
+            case CompanionCEMState.Evade:
+                Evade();
                 break;
         }
     }
@@ -311,12 +351,61 @@ public class CompanionAI_CEM : MonoBehaviour
         }
     }
     
-    void SupportPlayer()
+    void Heal()
     {
-        startingPosition = transform.position;
-        targetPosition = player.position + (transform.position - player.position).normalized * followDistance;
-        movesLeft--;
-        MoveTowardsTarget();
+        if (healCount > 0)
+        {
+            if (health < 30)
+            {
+                HealTarget = transform;
+            }
+
+            if (player.GetComponent<Player>().health < 50)
+            {
+                HealTarget = player;
+            }
+            
+            if (HealTarget == player)
+            {
+                player.GetComponent<Player>().health += healAmount;
+                healCount--;
+                movesLeft--;
+            }
+            else
+            {
+                health += healAmount;
+                healCount--;
+                movesLeft--;
+            }
+        }
+    }
+
+    void Evade()
+    {
+        List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
+        Vector3 evadeDirection = Vector3.zero;
+        foreach (GameObject enemy in allEnemies)
+        {
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+
+            if (distance < 3f)
+            {
+                Vector3 directionAway = transform.position - enemy.transform.position;
+                evadeDirection += directionAway.normalized;
+            }
+        }
+        if (evadeDirection != Vector3.zero)
+        {
+            evadeDirection.Normalize();
+            targetPosition = transform.position + evadeDirection;
+            startingPosition = transform.position;
+            movesLeft--;
+            MoveTowardsTarget();
+        }
+        else
+        {
+            currentState = CompanionCEMState.FollowPlayer;
+        }
     }
     
     GameObject GetNearestEnemy()
