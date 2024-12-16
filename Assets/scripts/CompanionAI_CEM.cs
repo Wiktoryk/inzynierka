@@ -120,7 +120,6 @@ public class CompanionAI_CEM : MonoBehaviour
 
         CompanionCEMState[] possibleStates = new CompanionCEMState[]
         {
-            CompanionCEMState.Idle,
             CompanionCEMState.FollowPlayer,
             CompanionCEMState.AttackEnemy,
             CompanionCEMState.Heal,
@@ -129,9 +128,26 @@ public class CompanionAI_CEM : MonoBehaviour
         
         foreach (var firstAction in possibleStates)
         {
+            if (healCount <= 0 && firstAction == CompanionCEMState.Heal)
+            {
+                continue;
+            }
+            if (firstAction == CompanionCEMState.Evade && !IsEnemyNearby())
+            {
+                continue;
+            }
+            float empowermentAfterFirst = CalculateEmpowerment(firstAction);
             foreach (var secondAction in possibleStates)
             {
-                float combinedEmpowerment = CalculateTwoActionEmpowerment(firstAction, secondAction);
+                if (healCount <= 0 && secondAction == CompanionCEMState.Heal)
+                {
+                    continue;
+                }
+                if (secondAction == CompanionCEMState.Evade && !IsEnemyNearby())
+                {
+                    continue;
+                }
+                float combinedEmpowerment = Calculate2ndActionEmpowerment(firstAction, secondAction) + empowermentAfterFirst;
 
                 if (combinedEmpowerment > maxEmpowermentValue)
                 {
@@ -145,21 +161,19 @@ public class CompanionAI_CEM : MonoBehaviour
         return (bestFirstAction, bestSecondAction);
     }
     
-    float CalculateTwoActionEmpowerment(CompanionCEMState firstAction, CompanionCEMState secondAction)
+    float Calculate2ndActionEmpowerment(CompanionCEMState firstAction, CompanionCEMState secondAction)
     {
-        float empowermentAfterFirst = CalculateEmpowerment(firstAction);
         originalState ogState = SimulateAction(firstAction);
         float empowermentAfterSecond = CalculateEmpowerment(secondAction);
         RevertSimulation(ogState);
 
-        return empowermentAfterFirst + empowermentAfterSecond;
+        return empowermentAfterSecond;
     }
     
     float CalculateEmpowerment(CompanionCEMState state)
     {
         switch (state)
         {
-            case CompanionCEMState.Idle: return CalculateIdleEmpowerment();
             case CompanionCEMState.FollowPlayer: return CalculateFollowPlayerEmpowerment();
             case CompanionCEMState.AttackEnemy: return CalculateAttackEmpowerment();
             case CompanionCEMState.Heal: return CalculateHealEmpowerment();
@@ -231,9 +245,16 @@ public class CompanionAI_CEM : MonoBehaviour
         foreach (GameObject enemy in enemies)
         {
             float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distanceToEnemy < attackRange && enemy.GetComponent<EnemyAI>().health > 0)
+            if (enemy.GetComponent<EnemyAI>().health > 0)
             {
-                maxAttackEmpowerment = Mathf.Max(maxAttackEmpowerment, 2.0f);
+                if (distanceToEnemy < attackRange)
+                {
+                    maxAttackEmpowerment = Mathf.Max(maxAttackEmpowerment, 2.0f);
+                }
+                else if (distanceToEnemy < rangedAttackRange)
+                {
+                    maxAttackEmpowerment = Mathf.Max(maxAttackEmpowerment, 1.0f);
+                }
             }
         }
         return maxAttackEmpowerment;
@@ -311,29 +332,19 @@ public class CompanionAI_CEM : MonoBehaviour
     {
         foreach (GameObject enemy in enemies)
         {
-            if (Vector3.Distance(transform.position, enemy.transform.position) < attackRange)
+            float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distanceToEnemy < attackRange)
             {
                 enemy.GetComponent<EnemyAI>().TakeDamage(attackDamage);
                 movesLeft--;
                 break;
             }
-        
-            // int result = Random.Range(0, 1);
-            // if (result == 1)
-            // {
-            //     if (Vector3.Distance(transform.position, enemy.transform.position) < rangedAttackRange)
-            //     {
-            //         enemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
-            //         movesLeft--;
-            //         break;
-            //     }
-            //     targetPosition = enemy.transform.position;
-            //     startingPosition = transform.position;
-            //     movesLeft--;
-            //     MoveTowardsTarget();
-            //     break;
-            //
-            // }
+            else if (distanceToEnemy < rangedAttackRange)
+            {
+                enemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
+                movesLeft--;
+                break;
+            }
         }
     }
 
@@ -407,21 +418,19 @@ public class CompanionAI_CEM : MonoBehaviour
             currentState = CompanionCEMState.FollowPlayer;
         }
     }
-    
-    GameObject GetNearestEnemy()
+
+    bool IsEnemyNearby()
     {
-        GameObject nearestEnemy = null;
-        float minDistance = Mathf.Infinity;
+        bool isENearby = false;
         foreach (GameObject enemy in enemies)
         {
-            float distance = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distance < minDistance)
+            if (Vector3.Distance(transform.position, enemy.transform.position) < 3.0f)
             {
-                minDistance = distance;
-                nearestEnemy = enemy;
+                isENearby = true;
+                break;
             }
         }
-        return nearestEnemy;
+        return isENearby;
     }
     void EndTurn()
     {
