@@ -200,7 +200,7 @@ public class CompanionAI_CEM : MonoBehaviour
                 break;
 
             case CompanionCEMState.Heal:
-                Heal();
+                SimulateHeal();
                 break;
             
             case CompanionCEMState.Evade:
@@ -236,7 +236,7 @@ public class CompanionAI_CEM : MonoBehaviour
     float CalculateFollowPlayerEmpowerment()
     {
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        return distanceToPlayer <= followDistance ? 1.5f : 0.5f;
+        return (distanceToPlayer <= followDistance && distanceToPlayer > 1.0f) ? 1.3f : 0.5f;
     }
     
     float CalculateAttackEmpowerment()
@@ -352,10 +352,18 @@ public class CompanionAI_CEM : MonoBehaviour
     {
         foreach (GameObject enemy in enemies)
         {
-            if (Vector3.Distance(transform.position, enemy.transform.position) < attackRange)
+            float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distanceToEnemy < attackRange)
             {
                 originalState.SetEnemyHealth(enemy.GetComponent<EnemyAI>().health, enemies.IndexOf(enemy));
                 enemy.GetComponent<EnemyAI>().SimulateTakeDamage(attackDamage);
+                movesLeft--;
+                break;
+            }
+            else if (distanceToEnemy < rangedAttackRange)
+            {
+                originalState.SetEnemyHealth(enemy.GetComponent<EnemyAI>().health, enemies.IndexOf(enemy));
+                enemy.GetComponent<EnemyAI>().SimulateTakeDamage(rangedAttackDamage);
                 movesLeft--;
                 break;
             }
@@ -363,6 +371,36 @@ public class CompanionAI_CEM : MonoBehaviour
     }
     
     void Heal()
+    {
+        if (healCount > 0)
+        {
+            if (health < 30)
+            {
+                HealTarget = transform;
+            }
+
+            if (player.GetComponent<Player>().health < 50)
+            {
+                HealTarget = player;
+            }
+            
+            if (HealTarget == player)
+            {
+                player.GetComponent<Player>().health += healAmount;
+                player.GetChild(0).GetComponent<healthDisplay>().updateHealth(player.GetComponent<Player>());
+                healCount--;
+                movesLeft--;
+            }
+            else
+            {
+                health += healAmount;
+                healCount--;
+                movesLeft--;
+            }
+        }
+    }
+
+    void SimulateHeal()
     {
         if (healCount > 0)
         {

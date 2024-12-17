@@ -21,6 +21,10 @@ public class Player : MonoBehaviour
     public bool isTurn = false;
     
     public int health = 50;
+    
+    public int healCount = 2;
+    public int healAmount = 10;
+    public int turnCounter = 0;
     void Start()
     {
         targetPosition = transform.position;
@@ -32,6 +36,12 @@ public class Player : MonoBehaviour
     {
         if (isTurn)
         {
+            turnCounter++;
+            if (turnCounter % 3 == 0)
+            {
+                healCount = 2;
+                turnCounter = 0;
+            }
             if (!isTurnComplete && !isMoving && movesLeft > 0)
             {
                 HandleMovementInput();

@@ -250,12 +250,6 @@ public class EnemyAI : MonoBehaviour
     
     bool checkValidPosition()
     {
-        if (transform.position.x % 0.64f != 0 || transform.position.y % 0.64f != 0)
-        {
-            float snappedX = Mathf.Round(transform.position.x / 0.64f) * 0.64f +0.32f;
-            float snappedY = Mathf.Round(transform.position.y / 0.64f) * 0.64f +0.32f;
-            transform.position = new Vector3(snappedX, snappedY, 0);
-        }
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.1f);
         foreach (Collider2D collider in colliders)
         {

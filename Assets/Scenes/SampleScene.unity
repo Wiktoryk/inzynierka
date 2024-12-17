@@ -951,6 +951,9 @@ MonoBehaviour:
   movesLeft: 2
   isTurn: 0
   health: 100
+  healCount: 2
+  healAmount: 10
+  turnCounter: 0
 --- !u!61 &330656360
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -4197,7 +4200,13 @@ MonoBehaviour:
   followDistance: 1.5
   supportRange: 3
   attackRange: 1
+  rangedAttackRange: 2
   attackDamage: 10
+  rangedAttackDamage: 5
+  healCount: 2
+  healAmount: 10
+  turnCounter: 0
+  HealTarget: {fileID: 0}
   moveDistance: 0.64
   isTurnComplete: 0
   isTurn: 0
@@ -11466,6 +11475,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 330656355}
+  ally: {fileID: 651719965}
 --- !u!4 &1370947531
 Transform:
   m_ObjectHideFlags: 0
