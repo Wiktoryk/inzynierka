@@ -33,7 +33,7 @@ public class EnemySpawner : MonoBehaviour
 
         if (roomPosition.Position.y < 0)
         {
-            currentRoomPositionV.y += 7;
+            currentRoomPositionV.y -= 7;
         }
 
         if (isBossRoom)

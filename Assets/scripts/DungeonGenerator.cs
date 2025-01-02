@@ -19,14 +19,19 @@ public class DungeonGenerator : MonoBehaviour
     
     public GameObject EnemySpawnerPrefab;
 
+    private bool generationDone = false;
+
     void Start()
     {
+        generationDone = false;
+        StartCoroutine(GenerationTimeout());
         GenerateDungeon();
     }
 
     void GenerateDungeon()
     {
         Vector2Int currentPosition = Vector2Int.zero;
+        HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
         Vector3 startingPosition = new Vector3(currentPosition.x, currentPosition.y, 0);
         GameObject startRoom = Instantiate(startRoomPrefab, startingPosition, Quaternion.identity);
         RoomData roomData = this.AddComponent<RoomData>();
@@ -37,12 +42,8 @@ public class DungeonGenerator : MonoBehaviour
         GenerateEnemies(roomData);
         int maxSize = Random.Range(minRoomsBetweenStartAndEnd, minRoomsBetweenStartAndEnd + 2);
 
-        for (int i = 0; i < maxSize; i++)
-        {
-            currentPosition = PlaceNextRoom(currentPosition);
-            //currentPosition = GetNextRoomPosition(currentPosition);
-            Debug.Log("Current Position: " + currentPosition);
-        }
+        currentPosition = PlaceNextRoom(currentPosition, maxSize, visited);
+        BackfillExits(currentPosition);
         if (!generatedRooms[currentPosition].RoomObject.name.Contains("RightExit"))
         {
             bool chosen = false;
@@ -70,7 +71,7 @@ public class DungeonGenerator : MonoBehaviour
                             }
                         }
                     }
-
+        
                     GameObject room = Instantiate(roomPrefab, position3, Quaternion.identity);
                     RoomData roomDataFix = this.AddComponent<RoomData>();
                     roomDataFix.Init(position, room);
@@ -100,7 +101,7 @@ public class DungeonGenerator : MonoBehaviour
                             }
                         }
                     }
-
+        
                     GameObject room = Instantiate(roomPrefab, position3, Quaternion.identity);
                     RoomData roomDataFix = this.AddComponent<RoomData>();
                     roomDataFix.Init(position, room);
@@ -121,20 +122,31 @@ public class DungeonGenerator : MonoBehaviour
         generatedRooms[endPosition] = endRoomData;
         endRoom.SetActive(true);
         endRoom.GetComponent<Grid>().enabled = true;
+        generationDone = true;
         Debug.Log("End Position: " + endPosition);
     }
 
-    Vector2Int PlaceNextRoom(Vector2Int currentPos)
+    Vector2Int PlaceNextRoom(Vector2Int currentPos, int maxSize, HashSet<Vector2Int> visited)
     {
+        if (maxSize <= 0 || visited.Contains(currentPos))
+        {
+            return currentPos;
+        }
+        visited.Add(currentPos);
         List<Vector2Int> possibleExits = GetAvailableExits(currentPos);
         if (possibleExits.Count == 0)
         {
             return currentPos;
         }
-        Vector2Int selectedExit = possibleExits[Random.Range(0, possibleExits.Count)];
-        Vector3 roomPosition = new Vector3(selectedExit.x * 14, selectedExit.y * 14, 0);
-        if (!generatedRooms.ContainsKey(selectedExit))
+
+        Vector2Int mainPath = currentPos;
+        foreach (Vector2Int selectedExit in possibleExits)
         {
+            if (generatedRooms.ContainsKey(selectedExit) || visited.Contains(selectedExit))
+            {
+                continue;
+            }
+            Vector3 roomPosition = new Vector3(selectedExit.x * 14, selectedExit.y * 14, 0);
             Vector2Int direction = selectedExit - currentPos;
             List<GameObject> matchingPrefabs = new List<GameObject>();
             foreach (GameObject prefab in roomPrefabs)
@@ -147,7 +159,7 @@ public class DungeonGenerator : MonoBehaviour
             if (matchingPrefabs.Count == 0)
             {
                 Debug.LogWarning("No matching room found for exit at " + selectedExit);
-                return currentPos;
+                continue;
             }
             GameObject selectedPrefab = matchingPrefabs[Random.Range(0, matchingPrefabs.Count)];
             GameObject newRoom = Instantiate(selectedPrefab, roomPosition, Quaternion.identity);
@@ -155,15 +167,20 @@ public class DungeonGenerator : MonoBehaviour
             roomData.Init(selectedExit, newRoom);
             newRoom.GetComponent<Grid>().enabled = true;
             newRoom.SetActive(true);
-            if (currentPos != Vector2Int.zero)
-            {
-                //GenerateEnemies(roomData);
-            }
             generatedRooms[selectedExit] = roomData;
-            return selectedExit;
+            if (mainPath == currentPos)
+            {
+                mainPath = PlaceNextRoom(selectedExit, maxSize - 1, visited);
+            }
+            else
+            {
+                PlaceNextRoom(selectedExit, maxSize - 1, visited);
+            }
+            //BackfillExits();
         }
+        Debug.Log(mainPath);
 
-        return currentPos;
+        return mainPath;
     }
     
     bool RoomMatchesDoors(string roomName, Vector2Int direction)
@@ -176,6 +193,86 @@ public class DungeonGenerator : MonoBehaviour
         else if (direction == Vector2Int.right) requiredEnter = "left";
 
         return roomName.Contains(requiredEnter + "Enter");
+    }
+    
+    void BackfillExits(Vector2Int position)
+    {
+        List<Vector2Int> roomPositions = new List<Vector2Int>(generatedRooms.Keys);
+        foreach (Vector2Int roomPosition in roomPositions)
+        {
+            if (roomPosition == position)
+            {
+                continue;
+            }
+            List<Vector2Int> availableExits = GetAvailableExits(roomPosition);
+
+            foreach (Vector2Int exitPosition in availableExits)
+            {
+                if (generatedRooms.ContainsKey(exitPosition))
+                    continue;
+
+                Vector3 newRoomPosition = new Vector3(exitPosition.x * 14, exitPosition.y * 14, 0);
+                Vector2Int direction = exitPosition - roomPosition;
+                List<GameObject> matchingPrefabs = new List<GameObject>();
+                foreach (GameObject prefab in roomPrefabs)
+                {
+                    if (RoomMatchesDoors(prefab.name, direction))
+                    {
+                        matchingPrefabs.Add(prefab);
+                    }
+                }
+
+                if (matchingPrefabs.Count == 0)
+                {
+                    Debug.LogWarning("No matching prefab for backfill at position: " + exitPosition);
+                    continue;
+                }
+
+                GameObject selectedPrefab = matchingPrefabs[Random.Range(0, matchingPrefabs.Count)];
+                GameObject newRoom = Instantiate(selectedPrefab, newRoomPosition, Quaternion.identity);
+                RoomData newRoomData = this.AddComponent<RoomData>();
+                newRoomData.Init(exitPosition, newRoom);
+                newRoom.GetComponent<Grid>().enabled = true;
+                newRoom.SetActive(true);
+                generatedRooms[exitPosition] = newRoomData;
+            }
+        }
+    }
+    
+    void BackFillRoomExits(Vector2Int position, HashSet<Vector2Int> visited)
+    {
+        visited.Add(position);
+        List<Vector2Int> possibleExits = GetAvailableExits(position);
+        foreach (Vector2Int exit in possibleExits)
+        {
+            if (generatedRooms.ContainsKey(exit) || visited.Contains(exit))
+            {
+                continue;
+            }
+            Vector3 roomPosition = new Vector3(exit.x * 14, exit.y * 14, 0);
+            Vector2Int direction = exit - position;
+            List<GameObject> matchingPrefabs = new List<GameObject>();
+            foreach (GameObject prefab in roomPrefabs)
+            {
+                if (RoomMatchesDoors(prefab.name, direction))
+                {
+                    matchingPrefabs.Add(prefab);
+                }
+            }
+            if (matchingPrefabs.Count == 0)
+            {
+                Debug.LogWarning("No matching room found for exit at " + exit);
+                continue;
+            }
+            GameObject selectedPrefab = matchingPrefabs[Random.Range(0, matchingPrefabs.Count)];
+            GameObject newRoom = Instantiate(selectedPrefab, roomPosition, Quaternion.identity);
+            RoomData roomData = this.AddComponent<RoomData>();
+            roomData.Init(exit, newRoom);
+            newRoom.GetComponent<Grid>().enabled = true;
+            newRoom.SetActive(true);
+            generatedRooms[exit] = roomData;
+            //BackFillRoomExits(exit, visited);
+        }
     }
     
     void GenerateEnemies(RoomData roomData)
@@ -287,7 +384,6 @@ public class DungeonGenerator : MonoBehaviour
             {
                 continue;
             }
-            Vector3 tileWorldPos = tilemap.CellToWorld(cellPos);
             if (cellPos.x > 1)
             {
                 exits.Add(position + Vector2Int.right);
@@ -304,19 +400,28 @@ public class DungeonGenerator : MonoBehaviour
             {
                 exits.Add(position + Vector2Int.down);
             }
-            else
-            {
-                Debug.LogError("Invalid exit position");
-            }
         }
 
         exits.RemoveAll(exit => generatedRooms.ContainsKey(exit));
-        if (exits.Count == 0)
-        {
-            Debug.LogError("No available exits");
-        }
 
         return exits;
+    }
+    
+    IEnumerator GenerationTimeout()
+    {
+        float timeout = 3f;
+        var stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+        while (stopwatch.Elapsed.TotalSeconds < timeout)
+        {
+            if (generationDone)
+            {
+                yield break;
+            }
+            yield return null;
+        }
+        Debug.LogError("Dungeon generation timed out");
+        SceneManager.LoadScene("Scenes/Start");
     }
 }
 

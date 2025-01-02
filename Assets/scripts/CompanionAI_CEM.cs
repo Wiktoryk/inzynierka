@@ -143,10 +143,6 @@ public class CompanionAI_CEM : MonoBehaviour
                 {
                     continue;
                 }
-                if (secondAction == CompanionCEMState.Evade && !IsEnemyNearby())
-                {
-                    continue;
-                }
                 float combinedEmpowerment = Calculate2ndActionEmpowerment(firstAction, secondAction) + empowermentAfterFirst;
 
                 if (combinedEmpowerment > maxEmpowermentValue)
