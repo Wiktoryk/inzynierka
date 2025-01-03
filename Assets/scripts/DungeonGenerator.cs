@@ -18,18 +18,15 @@ public class DungeonGenerator : MonoBehaviour
     public GameObject startRoomPrefab;
     public GameObject[] roomPrefabs;
     public GameObject endRoomPrefab;
+    public GameObject[] noExitsPrefabs;
     public int minRoomsBetweenStartAndEnd = 3;
     public Dictionary<Vector2Int, RoomData> generatedRooms = new Dictionary<Vector2Int, RoomData>();
     public Vector2Int CurrentRoomPosition { get; set; } = Vector2Int.zero;
     
     public GameObject EnemySpawnerPrefab;
 
-    private bool generationDone = false;
-
     void Start()
     {
-        generationDone = false;
-        StartCoroutine(GenerationTimeout());
         try
         {
             GenerateDungeon();
@@ -56,8 +53,6 @@ public class DungeonGenerator : MonoBehaviour
         var stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
         currentPosition = PlaceNextRoom(currentPosition, maxSize, visited, stopwatch, roomPrefabs).Value;
-        
-        //BackfillExits(currentPosition);
         stopwatch.Reset();
         if (!generatedRooms[currentPosition].RoomObject.name.Contains("RightExit"))
         {
@@ -139,8 +134,9 @@ public class DungeonGenerator : MonoBehaviour
         generatedRooms[endPosition] = endRoomData;
         endRoom.SetActive(true);
         endRoom.GetComponent<Grid>().enabled = true;
+        RemoveInvalidRooms();
+        BackfillExits(Vector2Int.zero);
         GenerateEnemies(roomData);
-        generationDone = true;
     }
 
     Vector2Int? PlaceNextRoom(Vector2Int currentPos, int maxSize, HashSet<Vector2Int> visited, Stopwatch stopwatch, GameObject[] prefabs,  bool isMainPath = true)
@@ -278,7 +274,7 @@ public class DungeonGenerator : MonoBehaviour
                 Vector3 newRoomPosition = new Vector3(exitPosition.x * 14, exitPosition.y * 14, 0);
                 Vector2Int direction = exitPosition - roomPosition;
                 List<GameObject> matchingPrefabs = new List<GameObject>();
-                foreach (GameObject prefab in roomPrefabs)
+                foreach (GameObject prefab in noExitsPrefabs)
                 {
                     if (RoomMatchesDoors(prefab.name, direction))
                     {
@@ -316,7 +312,7 @@ public class DungeonGenerator : MonoBehaviour
             Vector3 roomPosition = new Vector3(exit.x * 14, exit.y * 14, 0);
             Vector2Int direction = exit - position;
             List<GameObject> matchingPrefabs = new List<GameObject>();
-            foreach (GameObject prefab in roomPrefabs)
+            foreach (GameObject prefab in noExitsPrefabs)
             {
                 if (RoomMatchesDoors(prefab.name, direction))
                 {
@@ -325,7 +321,6 @@ public class DungeonGenerator : MonoBehaviour
             }
             if (matchingPrefabs.Count == 0)
             {
-                Debug.LogWarning("No matching room found for exit at " + exit);
                 continue;
             }
             GameObject selectedPrefab = matchingPrefabs[Random.Range(0, matchingPrefabs.Count)];
@@ -335,7 +330,7 @@ public class DungeonGenerator : MonoBehaviour
             newRoom.GetComponent<Grid>().enabled = true;
             newRoom.SetActive(true);
             generatedRooms[exit] = roomData;
-            //BackFillRoomExits(exit, visited);
+            BackFillRoomExits(exit, visited);
         }
     }
     
@@ -518,22 +513,87 @@ public class DungeonGenerator : MonoBehaviour
 
         return false;
     }
-    
-    IEnumerator GenerationTimeout()
+
+    void RemoveInvalidRooms()
     {
-        float timeout = 3f;
-        var stopwatch = new System.Diagnostics.Stopwatch();
-        stopwatch.Start();
-        while (stopwatch.Elapsed.TotalSeconds < timeout)
+        List<Vector2Int> invalidRooms = new List<Vector2Int>();
+        foreach (var room in generatedRooms)
         {
-            if (generationDone)
+            List<Vector2Int> exits = GetAllExits(room.Key);
+            foreach (var exit in exits)
             {
-                yield break;
+                generatedRooms.TryGetValue(exit, out RoomData roomData);
+                if (roomData != null)
+                {
+                    if (exit == Vector2Int.right && !roomData.RoomObject.name.Contains("leftEnter"))
+                    {
+                        invalidRooms.Add(room.Key);
+                        break;
+                    }
+                    if (exit == Vector2Int.left && !roomData.RoomObject.name.Contains("rightEnter"))
+                    {
+                        invalidRooms.Add(room.Key);
+                        break;
+                    }
+                    if (exit == Vector2Int.up && !roomData.RoomObject.name.Contains("bottomEnter"))
+                    {
+                        invalidRooms.Add(room.Key);
+                        break;
+                    }
+                    if (exit == Vector2Int.down && !roomData.RoomObject.name.Contains("topEnter"))
+                    {
+                        invalidRooms.Add(room.Key);
+                        break;
+                    }
+                }
             }
-            yield return null;
         }
-        Debug.LogError("Dungeon generation timed out");
-        SceneManager.LoadScene("Scenes/Start");
+
+        foreach (var room in invalidRooms)
+        {
+            if (generatedRooms.TryGetValue(room, out RoomData roomData))
+            {
+                generatedRooms.Remove(room);
+                Destroy(roomData.RoomObject);
+            }
+        }
+    }
+    
+    List<Vector2Int> GetAllExits(Vector2Int position)
+    {
+        if (!generatedRooms.TryGetValue(position, out RoomData roomData))
+        {
+            return new List<Vector2Int>();
+        }
+        List<Vector2Int> exits = new List<Vector2Int>();
+        Tilemap tilemap = roomData.RoomObject.transform.Find("move").GetComponent<Tilemap>();
+        
+        foreach (Vector3Int cellPos in tilemap.cellBounds.allPositionsWithin)
+        {
+            if (!tilemap.HasTile(cellPos))
+            {
+                continue;
+            }
+
+            if (cellPos.x > 1)
+            {
+                exits.Add(Vector2Int.right);
+            }
+            else if (cellPos.x < -1 && !roomData.RoomObject.name.Contains("leftEnter"))
+            {
+                exits.Add(Vector2Int.left);
+            }
+            else if (cellPos.y > 1 && !roomData.RoomObject.name.Contains("topEnter"))
+            {
+                exits.Add(Vector2Int.up);
+            }
+            else if (cellPos.y < -1 && !roomData.RoomObject.name.Contains("bottomEnter"))
+            {
+                exits.Add(Vector2Int.down);
+            }
+        }
+
+        return exits;
     }
 }
 
