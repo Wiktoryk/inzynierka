@@ -1,11 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
+using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
 public class DungeonGenerator : MonoBehaviour
@@ -25,7 +30,15 @@ public class DungeonGenerator : MonoBehaviour
     {
         generationDone = false;
         StartCoroutine(GenerationTimeout());
-        GenerateDungeon();
+        try
+        {
+            GenerateDungeon();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message);
+            SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+        }
     }
 
     void GenerateDungeon()
@@ -39,17 +52,24 @@ public class DungeonGenerator : MonoBehaviour
         generatedRooms[currentPosition] = roomData;
         startRoom.SetActive(true);
         startRoom.GetComponent<Grid>().enabled = true;
-        GenerateEnemies(roomData);
         int maxSize = Random.Range(minRoomsBetweenStartAndEnd, minRoomsBetweenStartAndEnd + 2);
-
-        currentPosition = PlaceNextRoom(currentPosition, maxSize, visited).Value;
+        var stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+        currentPosition = PlaceNextRoom(currentPosition, maxSize, visited, stopwatch, roomPrefabs).Value;
+        
         //BackfillExits(currentPosition);
+        stopwatch.Reset();
         if (!generatedRooms[currentPosition].RoomObject.name.Contains("RightExit"))
         {
             bool chosen = false;
             bool fix = false;
+            stopwatch.Start();
             while (!fix)
             {
+                if (stopwatch.Elapsed.TotalMilliseconds > 100f)
+                {
+                    throw new Exception("Generation took too long");
+                }
                 if (generatedRooms[currentPosition].RoomObject.name.Contains("TopExit") && !chosen)
                 {
                     Vector2Int position = currentPosition + Vector2Int.up;
@@ -71,7 +91,6 @@ public class DungeonGenerator : MonoBehaviour
                             }
                         }
                     }
-        
                     GameObject room = Instantiate(roomPrefab, position3, Quaternion.identity);
                     RoomData roomDataFix = this.AddComponent<RoomData>();
                     roomDataFix.Init(position, room);
@@ -101,7 +120,6 @@ public class DungeonGenerator : MonoBehaviour
                             }
                         }
                     }
-        
                     GameObject room = Instantiate(roomPrefab, position3, Quaternion.identity);
                     RoomData roomDataFix = this.AddComponent<RoomData>();
                     roomDataFix.Init(position, room);
@@ -113,7 +131,6 @@ public class DungeonGenerator : MonoBehaviour
                 }
             }
         }
-        Debug.Log("current Position: " + currentPosition);
         Vector2Int endPosition = currentPosition + Vector2Int.right;
         Vector3 endingPosition = new Vector3(endPosition.x, endPosition.y, 0);
         GameObject endRoom = Instantiate(endRoomPrefab, endingPosition * 14, Quaternion.identity);
@@ -122,12 +139,16 @@ public class DungeonGenerator : MonoBehaviour
         generatedRooms[endPosition] = endRoomData;
         endRoom.SetActive(true);
         endRoom.GetComponent<Grid>().enabled = true;
+        GenerateEnemies(roomData);
         generationDone = true;
-        Debug.Log("End Position: " + endPosition);
     }
 
-    Vector2Int? PlaceNextRoom(Vector2Int currentPos, int maxSize, HashSet<Vector2Int> visited, bool isMainPath = true)
+    Vector2Int? PlaceNextRoom(Vector2Int currentPos, int maxSize, HashSet<Vector2Int> visited, Stopwatch stopwatch, GameObject[] prefabs,  bool isMainPath = true)
     {
+        if (stopwatch.Elapsed.TotalMilliseconds > 100f)
+        {
+            throw new Exception("Generation took too long");
+        }
         if (maxSize <= 0 || visited.Contains(currentPos))
         {
             return currentPos;
@@ -136,12 +157,13 @@ public class DungeonGenerator : MonoBehaviour
         List<Vector2Int> possibleExits = GetAvailableExits(currentPos);
         if (possibleExits.Count == 0)
         {
-            if(isMainPath)
-            {
-                visited.Remove(currentPos);
-                return null;
-            }
-            return currentPos;
+            visited.Remove(currentPos);
+            return null;
+        }
+        if (hasMoreThan1Exit(currentPos) && possibleExits.Count == 1)
+        {
+            visited.Remove(currentPos);
+            return null;
         }
 
         Vector2Int mainPath = currentPos;
@@ -154,7 +176,7 @@ public class DungeonGenerator : MonoBehaviour
             Vector3 roomPosition = new Vector3(selectedExit.x * 14, selectedExit.y * 14, 0);
             Vector2Int direction = selectedExit - currentPos;
             List<GameObject> matchingPrefabs = new List<GameObject>();
-            foreach (GameObject prefab in roomPrefabs)
+            foreach (GameObject prefab in prefabs)
             {
                 if (RoomMatchesDoors(prefab.name, direction))
                 {
@@ -163,7 +185,6 @@ public class DungeonGenerator : MonoBehaviour
             }
             if (matchingPrefabs.Count == 0)
             {
-                Debug.LogWarning("No matching room found for exit at " + selectedExit);
                 continue;
             }
             GameObject selectedPrefab = matchingPrefabs[Random.Range(0, matchingPrefabs.Count)];
@@ -176,10 +197,11 @@ public class DungeonGenerator : MonoBehaviour
             if (mainPath == currentPos && isMainPath)
             {
                 bool viable = false;
-                int retries = roomPrefabs.Length;
+                int retries = prefabs.Length;
+                GameObject[] newPrefabs = prefabs;
                 while (!viable && retries > 0)
                 {
-                    var possiblePath = PlaceNextRoom(selectedExit, maxSize - 1, visited);
+                    var possiblePath = PlaceNextRoom(selectedExit, maxSize - 1, visited, stopwatch, newPrefabs);
                     if (possiblePath.HasValue)
                     {
                         mainPath = possiblePath.Value;
@@ -191,6 +213,7 @@ public class DungeonGenerator : MonoBehaviour
                         generatedRooms.Remove(selectedExit);
                         Destroy(roomData);
                         Destroy(newRoom);
+                        newPrefabs = newPrefabs.Where(prefab => prefab != selectedPrefab).ToArray();
                         //DestroyImmediate(selectedPrefab);
                     }
                 }
@@ -198,11 +221,28 @@ public class DungeonGenerator : MonoBehaviour
             }
             else
             {
-                PlaceNextRoom(selectedExit, maxSize - 2, visited, false);
+                int retries = prefabs.Length;
+                bool viable = false;
+                GameObject[] newPrefabs = prefabs;
+                while (!viable && retries > 0)
+                {
+                    var maybewrong = PlaceNextRoom(selectedExit, maxSize - 2, visited,stopwatch, newPrefabs, false);
+                    if (!maybewrong.HasValue)
+                    {
+                        retries--;
+                        generatedRooms.Remove(selectedExit);
+                        Destroy(roomData);
+                        Destroy(newRoom);
+                        newPrefabs = newPrefabs.Where(prefab => prefab != selectedPrefab).ToArray();
+                    }
+                    else
+                    {
+                        viable = true;
+                    }
+                }
             }
             //BackfillExits();
         }
-        Debug.Log(mainPath);
 
         return mainPath;
     }
@@ -404,14 +444,16 @@ public class DungeonGenerator : MonoBehaviour
         {
             return new List<Vector2Int>();
         }
-        Tilemap tilemap = roomData.RoomObject.transform.Find("move").GetComponent<Tilemap>();
         List<Vector2Int> exits = new List<Vector2Int>();
+        Tilemap tilemap = roomData.RoomObject.transform.Find("move").GetComponent<Tilemap>();
+        
         foreach (Vector3Int cellPos in tilemap.cellBounds.allPositionsWithin)
         {
             if (!tilemap.HasTile(cellPos))
             {
                 continue;
             }
+
             if (cellPos.x > 1)
             {
                 exits.Add(position + Vector2Int.right);
@@ -433,6 +475,48 @@ public class DungeonGenerator : MonoBehaviour
         exits.RemoveAll(exit => generatedRooms.ContainsKey(exit));
 
         return exits;
+    }
+
+    bool hasMoreThan1Exit(Vector2Int position)
+    {
+        if (!generatedRooms.TryGetValue(position, out RoomData roomData))
+        {
+            return false;
+        }
+        List<Vector2Int> exits = new List<Vector2Int>();
+        Tilemap tilemap = roomData.RoomObject.transform.Find("move").GetComponent<Tilemap>();
+
+        foreach (Vector3Int cellPos in tilemap.cellBounds.allPositionsWithin)
+        {
+            if (!tilemap.HasTile(cellPos))
+            {
+                continue;
+            }
+
+            if (cellPos.x > 1)
+            {
+                exits.Add(position + Vector2Int.right);
+            }
+            else if (cellPos.x < -1)
+            {
+                exits.Add(position + Vector2Int.left);
+            }
+            else if (cellPos.y > 1)
+            {
+                exits.Add(position + Vector2Int.up);
+            }
+            else if (cellPos.y < -1)
+            {
+                exits.Add(position + Vector2Int.down);
+            }
+        }
+
+        if (exits.Count > 1)
+        {
+            return true;
+        }
+
+        return false;
     }
     
     IEnumerator GenerationTimeout()
