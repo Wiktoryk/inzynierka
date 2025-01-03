@@ -364,7 +364,24 @@ public class DungeonGenerator : MonoBehaviour
     {
         if (generatedRooms.TryGetValue(CurrentRoomPosition, out RoomData roomData) && roomData.IsCompleted)
         {
-            Vector2Int nextRoomPosition = GetNextRoomPosition(CurrentRoomPosition);
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            Vector2Int exitDirection = Vector2Int.zero;
+            if (player.transform.position.x - roomData.RoomObject.transform.position.x > 2f)
+            {
+                exitDirection = Vector2Int.right;
+            }
+            else
+            {
+                if (player.transform.position.y - roomData.RoomObject.transform.position.y > 1f)
+                {
+                    exitDirection = Vector2Int.up;
+                }
+                else if (player.transform.position.y - roomData.RoomObject.transform.position.y < -1f)
+                {
+                    exitDirection = Vector2Int.down;
+                }
+            }
+            Vector2Int nextRoomPosition = GetNextRoomPosition(CurrentRoomPosition, exitDirection);
             if (generatedRooms.ContainsKey(nextRoomPosition))
             {
                 roomData.RoomObject.GetComponent<Grid>().enabled = false;
@@ -391,8 +408,8 @@ public class DungeonGenerator : MonoBehaviour
                 {
                     displacement += new Vector3(0, -1.92f, 0);
                 }
-                GameObject.FindGameObjectWithTag("Player").transform.position = nextRoomPositionV + displacement;
-                GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().MoveToRoom(nextRoomPositionV + displacement);
+                player.transform.position = nextRoomPositionV + displacement;
+                player.GetComponent<Player>().MoveToRoom(nextRoomPositionV + displacement);
                 if (GameObject.FindGameObjectWithTag("Ally") != null)
                 {
                     GameObject.FindGameObjectWithTag("Ally").transform.position = nextRoomPositionV + displacement;
@@ -419,16 +436,12 @@ public class DungeonGenerator : MonoBehaviour
         }
     }
     
-    Vector2Int GetNextRoomPosition(Vector2Int currentRoomPosition)
+    Vector2Int GetNextRoomPosition(Vector2Int currentRoomPosition, Vector2Int direction)
     {
-        Vector2Int[] directions = { Vector2Int.up, Vector2Int.right, Vector2Int.down, Vector2Int.left };
-        foreach (var direction in directions)
+        Vector2Int nextRoomPos = currentRoomPosition + direction;
+        if (generatedRooms.ContainsKey(nextRoomPos))
         {
-            Vector2Int nextRoomPos = currentRoomPosition + direction;
-            if (generatedRooms.ContainsKey(nextRoomPos))
-            {
-                return nextRoomPos;
-            }
+            return nextRoomPos;
         }
         return currentRoomPosition;
     }
