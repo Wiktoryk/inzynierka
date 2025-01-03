@@ -42,8 +42,8 @@ public class DungeonGenerator : MonoBehaviour
         GenerateEnemies(roomData);
         int maxSize = Random.Range(minRoomsBetweenStartAndEnd, minRoomsBetweenStartAndEnd + 2);
 
-        currentPosition = PlaceNextRoom(currentPosition, maxSize, visited);
-        BackfillExits(currentPosition);
+        currentPosition = PlaceNextRoom(currentPosition, maxSize, visited).Value;
+        //BackfillExits(currentPosition);
         if (!generatedRooms[currentPosition].RoomObject.name.Contains("RightExit"))
         {
             bool chosen = false;
@@ -126,7 +126,7 @@ public class DungeonGenerator : MonoBehaviour
         Debug.Log("End Position: " + endPosition);
     }
 
-    Vector2Int PlaceNextRoom(Vector2Int currentPos, int maxSize, HashSet<Vector2Int> visited)
+    Vector2Int? PlaceNextRoom(Vector2Int currentPos, int maxSize, HashSet<Vector2Int> visited, bool isMainPath = true)
     {
         if (maxSize <= 0 || visited.Contains(currentPos))
         {
@@ -136,6 +136,11 @@ public class DungeonGenerator : MonoBehaviour
         List<Vector2Int> possibleExits = GetAvailableExits(currentPos);
         if (possibleExits.Count == 0)
         {
+            if(isMainPath)
+            {
+                visited.Remove(currentPos);
+                return null;
+            }
             return currentPos;
         }
 
@@ -168,13 +173,32 @@ public class DungeonGenerator : MonoBehaviour
             newRoom.GetComponent<Grid>().enabled = true;
             newRoom.SetActive(true);
             generatedRooms[selectedExit] = roomData;
-            if (mainPath == currentPos)
+            if (mainPath == currentPos && isMainPath)
             {
-                mainPath = PlaceNextRoom(selectedExit, maxSize - 1, visited);
+                bool viable = false;
+                int retries = roomPrefabs.Length;
+                while (!viable && retries > 0)
+                {
+                    var possiblePath = PlaceNextRoom(selectedExit, maxSize - 1, visited);
+                    if (possiblePath.HasValue)
+                    {
+                        mainPath = possiblePath.Value;
+                        viable = true;
+                    }
+                    else
+                    {
+                        retries--;
+                        generatedRooms.Remove(selectedExit);
+                        Destroy(roomData);
+                        Destroy(newRoom);
+                        //DestroyImmediate(selectedPrefab);
+                    }
+                }
+                
             }
             else
             {
-                PlaceNextRoom(selectedExit, maxSize - 1, visited);
+                PlaceNextRoom(selectedExit, maxSize - 2, visited, false);
             }
             //BackfillExits();
         }
@@ -376,7 +400,11 @@ public class DungeonGenerator : MonoBehaviour
 
     List<Vector2Int> GetAvailableExits(Vector2Int position)
     {
-        Tilemap tilemap = generatedRooms[position].RoomObject.transform.Find("move").GetComponent<Tilemap>();
+        if (!generatedRooms.TryGetValue(position, out RoomData roomData))
+        {
+            return new List<Vector2Int>();
+        }
+        Tilemap tilemap = roomData.RoomObject.transform.Find("move").GetComponent<Tilemap>();
         List<Vector2Int> exits = new List<Vector2Int>();
         foreach (Vector3Int cellPos in tilemap.cellBounds.allPositionsWithin)
         {
