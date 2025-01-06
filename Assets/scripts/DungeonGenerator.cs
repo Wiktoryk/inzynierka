@@ -352,9 +352,9 @@ public class DungeonGenerator : MonoBehaviour
             {
                 roomData.IsCompleted = true;
                 ActivateExits(roomData);
-                if (roomData.RoomObject.name.Contains("End"))
+                if (roomData.RoomObject.name.Contains("end"))
                 {
-                    SceneManager.LoadScene("WinScene");
+                    SceneManager.LoadScene("Scenes/WinScene");
                 }
             }
         }
