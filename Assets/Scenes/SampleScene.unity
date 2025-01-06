@@ -3286,6 +3286,11 @@ MonoBehaviour:
   - {fileID: 12370331}
   - {fileID: 80930041}
   endRoomPrefab: {fileID: 1164039607}
+  noExitsPrefabs:
+  - {fileID: 971404162}
+  - {fileID: 80930041}
+  - {fileID: 12370331}
+  - {fileID: 620082339}
   minRoomsBetweenStartAndEnd: 3
   EnemySpawnerPrefab: {fileID: 733199161}
 --- !u!4 &329930210
@@ -6758,7 +6763,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 651719965}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3fdd6854db16fd40a68835885ba6fc0, type: 3}
   m_Name: 
@@ -6911,7 +6916,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 651719965}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ec72224bc8ae6142a94a17f46a1edae, type: 3}
   m_Name: 

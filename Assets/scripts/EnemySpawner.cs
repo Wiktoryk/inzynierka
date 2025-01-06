@@ -21,19 +21,20 @@ public class EnemySpawner : MonoBehaviour
         enemies.Clear();
         spawnPoints.Clear();
         Vector3 currentRoomPositionV = roomPosition.RoomObject.transform.position;
-        if (roomPosition.Position.x > 0)
+        Vector2Int roomPositionP = roomPosition.Position;
+        if (roomPositionP.x != 0)
         {
-            currentRoomPositionV.x += 7;
+            // currentRoomPositionV.x += 7;
+            // if (roomPositionP.x > 2)
+            // {
+            //     currentRoomPositionV.x += 12;
+            // }
+            currentRoomPositionV.x += 7 * roomPositionP.x;
         }
 
-        if (roomPosition.Position.y > 0)
+        if (roomPositionP.y != 0)
         {
-            currentRoomPositionV.y += 7;
-        }
-
-        if (roomPosition.Position.y < 0)
-        {
-            currentRoomPositionV.y -= 7;
+            currentRoomPositionV.y += 7 * roomPositionP.y;
         }
 
         if (isBossRoom)

@@ -334,11 +334,11 @@ public class DungeonGenerator : MonoBehaviour
         }
     }
     
-    void GenerateEnemies(RoomData roomData)
+    void GenerateEnemies(RoomData roomData, bool bossRoom = false)
     {
         EnemySpawner enemySpawner = Instantiate(EnemySpawnerPrefab, roomData.RoomObject.transform.position, Quaternion.identity).GetComponent<EnemySpawner>();
         enemySpawner.GameObject().SetActive(true);
-        enemySpawner.Init(roomData);
+        enemySpawner.Init(roomData, bossRoom);
         roomData.Enemies = enemySpawner.enemies;
         TurnManager tm = GameObject.Find("TurnManager").GetComponent<TurnManager>();
         tm.enemies = roomData.Enemies;
@@ -384,7 +384,7 @@ public class DungeonGenerator : MonoBehaviour
             Vector2Int nextRoomPosition = GetNextRoomPosition(CurrentRoomPosition, exitDirection);
             if (generatedRooms.ContainsKey(nextRoomPosition))
             {
-                roomData.RoomObject.GetComponent<Grid>().enabled = false;
+                //roomData.RoomObject.GetComponent<Grid>().enabled = false;
                 Vector3 RoomDistance = generatedRooms[CurrentRoomPosition].RoomObject.transform.position - generatedRooms[nextRoomPosition].RoomObject.transform.position;
                 CurrentRoomPosition = nextRoomPosition;
                 Vector3 nextRoomPositionV = generatedRooms[nextRoomPosition].RoomObject.transform.position;
@@ -418,7 +418,14 @@ public class DungeonGenerator : MonoBehaviour
 
                 if (!generatedRooms[nextRoomPosition].IsCompleted)
                 {
-                    GenerateEnemies(generatedRooms[nextRoomPosition]);
+                    if (generatedRooms[nextRoomPosition].RoomObject.name.Contains("end"))
+                    {
+                        GenerateEnemies(generatedRooms[nextRoomPosition], true);
+                    }
+                    else
+                    {
+                        GenerateEnemies(generatedRooms[nextRoomPosition]);
+                    }
                 }
             }
         }
