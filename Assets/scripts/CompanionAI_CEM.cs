@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum CompanionCEMState
+public enum CompanionCEMState : byte
 {
     Idle,
     FollowPlayer,
@@ -14,11 +14,11 @@ public enum CompanionCEMState
 
 public struct originalState
 {
+    public List<GameObject> enemyList;
     public Vector3 position;
     public int movesLeft;
     public int health;
     public int playerHealth;
-    public List<GameObject> enemyList;
     public int enemyHealth;
     public int attacked;
     
@@ -42,34 +42,30 @@ public struct originalState
 
 public class CompanionAI_CEM : MonoBehaviour
 {
-    public CompanionCEMState currentState;
-    public Transform player;
     public List<GameObject> enemies;
-    public float moveSpeed = 2f;
-    public float followDistance = 1.5f;
-    public int supportRange = 3;
-    
-    private int movesLeft = 2;
+    private List<Vector3> failedMoves = new List<Vector3>();
+    public Transform player;
+    public Transform HealTarget;
     private Vector3 targetPosition;
     private Vector3 startingPosition;
-    
+    public float moveSpeed = 2f;
+    public float followDistance = 1.5f;
     public float attackRange = 1.0f;
     public float rangedAttackRange = 2.0f;
+    public float moveDistance = 0.64f;
+    public int supportRange = 3;
+    private int movesLeft = 2;
     public int attackDamage = 10;
     public int rangedAttackDamage = 5;
     public int healCount = 2;
     public int healAmount = 10;
     public int turnCounter = 0;
-    public Transform HealTarget;
-    
-    public float moveDistance = 0.64f;
-    private List<Vector3> failedMoves = new List<Vector3>();
-    
     public bool isTurnComplete = false;
     public bool isTurn = false;
     private bool isBusy = false;
-    
     public int health = 50;
+    public CompanionCEMState currentState;
+    
     void Start()
     {
         currentState = CompanionCEMState.Idle;

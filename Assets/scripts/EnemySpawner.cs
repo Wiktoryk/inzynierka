@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
+    public List<GameObject> enemies = new List<GameObject>();
     public GameObject enemyPrefab;
     public GameObject bossPrefab;
-    public int numberOfEnemies;
     public List<Transform> spawnPoints;
-    public List<GameObject> enemies = new List<GameObject>();
     public Transform currentRoomPosition;
+    public int numberOfEnemies;
 
     void Start()
     {

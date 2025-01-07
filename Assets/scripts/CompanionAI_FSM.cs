@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public enum CompanionState
+public enum CompanionState : byte
 {
     Idle,
     FollowPlayer,
@@ -17,29 +17,26 @@ public enum CompanionState
 
 public class CompanionAI_FSM : MonoBehaviour
 {
-    
-    public bool isTurnComplete = false;
-    public CompanionState currentState;
     public Transform player;
-    public int health = 50;
-    public float moveSpeed = 15f;
-    public int movesLeft = 2;
+    public Transform HealTarget;
+    private List<Vector3> failedMoves = new List<Vector3>();
     private Vector3 startingPosition;
     private Vector3 targetPosition;
+    public float moveSpeed = 15f;
     public float moveDistance = 0.64f;
     public float attackRange = 1.0f;
     public float rangedAttackRange = 2.0f;
+    public bool isTurnComplete = false;
+    public int health = 50;
+    public int movesLeft = 2;
     public int attackDamage = 10;
     public int rangedAttackDamage = 5;
     public int healCount = 2;
     public int healAmount = 10;
     public int turnCounter = 0;
-    public Transform HealTarget;
-    
     public bool isTurn = false;
-    
-    private List<Vector3> failedMoves = new List<Vector3>();
     private bool isBusy = false;
+    public CompanionState currentState;
 
     void Start()
     {

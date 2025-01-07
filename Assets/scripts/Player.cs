@@ -6,22 +6,17 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    private int horizontal;
-    private int vertical;
-    
-    public float moveDistance = 0.64f;
-    public float moveSpeed = 64f;
-    
-    private bool isMoving = false;
     private Vector3 targetPosition;
     private Vector3 previousPosition;
-    
+    public float moveDistance = 0.64f;
+    public float moveSpeed = 64f;
+    private int horizontal;
+    private int vertical;
+    private bool isMoving = false;
     public bool isTurnComplete = false;
     public int movesLeft = 2;
     public bool isTurn = false;
-    
     public int health = 50;
-    
     public int healCount = 2;
     public int healAmount = 10;
     public int turnCounter = 0;

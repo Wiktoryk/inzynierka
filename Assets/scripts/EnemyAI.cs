@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public enum EnemyState
+public enum EnemyState : byte
 {
     Idle,
     Chase,
     Attack
 }
 
-public enum CurrentTarget
+public enum CurrentTarget : byte
 {
     Player,
     Companion
@@ -18,29 +18,25 @@ public enum CurrentTarget
 
 public class EnemyAI : MonoBehaviour
 {
-    public bool isTurnComplete = false;
-    public int health = 30;
-    
-    public EnemyState currentState;
-    public CurrentTarget currentTarget;
     public Transform player;
     public Transform companion;
-    public float attackRange = 1.0f;
-    public float moveSpeed = 15f;
-    public int movesLeft = 2;
-    private Rigidbody2D rb;
+    private List<Vector3> failedMoves = new List<Vector3>();
     private Vector3 startingPosition;
     private Vector3 targetPosition;
+    public float attackRange = 1.0f;
+    public float moveSpeed = 15f;
     public float moveDistance = 0.64f;
-    
+    public bool isTurnComplete = false;
+    public int health = 30;
+    public int movesLeft = 2;
     public bool isTurn = false;
-    private List<Vector3> failedMoves = new List<Vector3>();
     private bool isBusy = false;
+    public EnemyState currentState;
+    public CurrentTarget currentTarget;
     
     void Start()
     {
         currentState = EnemyState.Idle;
-        rb = GetComponent<Rigidbody2D>();
         startingPosition = transform.position;
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
@@ -49,7 +45,6 @@ public class EnemyAI : MonoBehaviour
         if (isTurn && !isTurnComplete && !isBusy)
         {
             isBusy = true;
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
             while (movesLeft > 0)
             {
@@ -227,7 +222,6 @@ public class EnemyAI : MonoBehaviour
     {
         isTurnComplete = true;
         isTurn = false;
-        rb.constraints = RigidbodyConstraints2D.FreezeAll;
         movesLeft = 2;
         failedMoves.Clear();
         isBusy = false;

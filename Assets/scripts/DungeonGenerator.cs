@@ -15,16 +15,15 @@ using Random = UnityEngine.Random;
 
 public class DungeonGenerator : MonoBehaviour
 {
-    public GameObject startRoomPrefab;
-    public GameObject[] roomPrefabs;
-    public GameObject endRoomPrefab;
-    public GameObject[] noExitsPrefabs;
-    public int minRoomsBetweenStartAndEnd = 3;
     public Dictionary<Vector2Int, RoomData> generatedRooms = new Dictionary<Vector2Int, RoomData>();
     public Vector2Int CurrentRoomPosition { get; set; } = Vector2Int.zero;
-    
+    public GameObject startRoomPrefab;
     public GameObject EnemySpawnerPrefab;
-
+    public GameObject endRoomPrefab;
+    public GameObject[] roomPrefabs;
+    public GameObject[] noExitsPrefabs;
+    public int minRoomsBetweenStartAndEnd = 3;
+    
     void Start()
     {
         try

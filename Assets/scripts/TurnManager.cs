@@ -5,13 +5,12 @@ using TMPro;
 
 public class TurnManager : MonoBehaviour
 {
+    public List<GameObject> enemies = new List<GameObject>();
     public GameObject player;
     public GameObject companion;
-    public List<GameObject> enemies = new List<GameObject>();
-    
     public TextMeshProUGUI turnText;
     
-    public enum TurnState
+    public enum TurnState : byte
     {
         PlayerTurn,
         CompanionTurn,
