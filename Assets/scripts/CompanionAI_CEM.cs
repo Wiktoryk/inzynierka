@@ -64,6 +64,7 @@ public class CompanionAI_CEM : MonoBehaviour
     public bool isTurn = false;
     private bool isBusy = false;
     public int health = 50;
+    public int maxHealth = 50;
     public CompanionCEMState currentState;
     
     void Start()
@@ -366,26 +367,30 @@ public class CompanionAI_CEM : MonoBehaviour
     {
         if (healCount > 0)
         {
+            var playerScript = player.GetComponent<Player>();
             if (health < 30)
             {
                 HealTarget = transform;
             }
 
-            if (player.GetComponent<Player>().health < 50)
+            if (playerScript.health < 50)
             {
                 HealTarget = player;
             }
             
             if (HealTarget == player)
             {
-                player.GetComponent<Player>().health += healAmount;
-                player.GetChild(0).GetComponent<healthDisplay>().updateHealth(player.GetComponent<Player>());
+                playerScript.health += healAmount;
+                playerScript.health = (playerScript.health > playerScript.maxHealth) ? playerScript.maxHealth : playerScript.health;
+                player.GetChild(0).GetComponent<healthDisplay>().updateHealth(playerScript);
                 healCount--;
                 movesLeft--;
             }
             else
             {
                 health += healAmount;
+                health = (health > maxHealth) ? maxHealth : health;
+                transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
                 healCount--;
                 movesLeft--;
             }
@@ -396,25 +401,28 @@ public class CompanionAI_CEM : MonoBehaviour
     {
         if (healCount > 0)
         {
+            var playerScript = player.GetComponent<Player>();
             if (health < 30)
             {
                 HealTarget = transform;
             }
 
-            if (player.GetComponent<Player>().health < 50)
+            if (playerScript.health < 50)
             {
                 HealTarget = player;
             }
             
             if (HealTarget == player)
             {
-                player.GetComponent<Player>().health += healAmount;
+                playerScript.health += healAmount;
+                playerScript.health = (playerScript.health > playerScript.maxHealth) ? playerScript.maxHealth : playerScript.health;
                 healCount--;
                 movesLeft--;
             }
             else
             {
                 health += healAmount;
+                health = (health > maxHealth) ? maxHealth : health;
                 healCount--;
                 movesLeft--;
             }

@@ -77,6 +77,7 @@ public class Combat : MonoBehaviour
             {
                 Player playerScript = player.GetComponent<Player>();
                 playerScript.health += 10;
+                playerScript.health = (playerScript.health > playerScript.maxHealth) ? playerScript.maxHealth : playerScript.health;
                 player.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(playerScript);
                 playerScript.movesLeft--;
                 playerScript.healCount--;
@@ -87,6 +88,7 @@ public class Combat : MonoBehaviour
                 {
                     CompanionAI_FSM allyScript = ally.GetComponent<CompanionAI_FSM>();
                     allyScript.health += 10;
+                    allyScript.health = (allyScript.health > allyScript.maxHealth) ? allyScript.maxHealth : allyScript.health;
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(allyScript);
                     player.GetComponent<Player>().movesLeft--;
                     player.GetComponent<Player>().healCount--;
@@ -95,6 +97,7 @@ public class Combat : MonoBehaviour
                 {
                     CompanionAI_CEM allyScript = ally.GetComponent<CompanionAI_CEM>();
                     allyScript.health += 10;
+                    allyScript.health = (allyScript.health > allyScript.maxHealth) ? allyScript.maxHealth : allyScript.health;
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(allyScript);
                     player.GetComponent<Player>().movesLeft--;
                     player.GetComponent<Player>().healCount--;
@@ -103,6 +106,7 @@ public class Combat : MonoBehaviour
                 {
                     CompanionAI_neural allyScript = ally.GetComponent<CompanionAI_neural>();
                     //allyScript.health += 10;
+                    //allyScript.health = (allyScript.health > allyScript.maxHealth) ? allyScript.maxHealth : allyScript.health;
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(allyScript);
                     player.GetComponent<Player>().movesLeft--;
                     player.GetComponent<Player>().healCount--;

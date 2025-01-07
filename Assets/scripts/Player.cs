@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
     public int movesLeft = 2;
     public bool isTurn = false;
     public int health = 50;
+    public int maxHealth = 100;
     public int healCount = 2;
     public int healAmount = 10;
     public int turnCounter = 0;

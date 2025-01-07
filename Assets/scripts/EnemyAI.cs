@@ -27,6 +27,7 @@ public class EnemyAI : MonoBehaviour
     public float moveSpeed = 15f;
     public float moveDistance = 0.64f;
     public bool isTurnComplete = false;
+    public int attackDamage = 5;
     public int health = 30;
     public int movesLeft = 2;
     public bool isTurn = false;
@@ -114,7 +115,7 @@ public class EnemyAI : MonoBehaviour
         {
             if (Vector3.Distance(transform.position, player.position) <= attackRange)
             {
-                player.GetComponent<Player>().TakeDamage(10);
+                player.GetComponent<Player>().TakeDamage(attackDamage);
                 currentState = EnemyState.Idle;
                 movesLeft--;
             }
@@ -129,11 +130,11 @@ public class EnemyAI : MonoBehaviour
             {
                 if (companion.GetComponent<CompanionAI_FSM>().enabled)
                 {
-                    companion.GetComponent<CompanionAI_FSM>().TakeDamage(5);
+                    companion.GetComponent<CompanionAI_FSM>().TakeDamage(attackDamage);
                 }
                 else
                 {
-                    companion.GetComponent<CompanionAI_CEM>().TakeDamage(5);
+                    companion.GetComponent<CompanionAI_CEM>().TakeDamage(attackDamage);
                 }
 
                 currentState = EnemyState.Idle;

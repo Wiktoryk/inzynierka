@@ -3270,6 +3270,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startRoomPrefab: {fileID: 1132576451}
+  EnemySpawnerPrefab: {fileID: 733199161}
+  endRoomPrefab: {fileID: 1164039607}
   roomPrefabs:
   - {fileID: 1738812758}
   - {fileID: 1028586443}
@@ -3285,14 +3287,12 @@ MonoBehaviour:
   - {fileID: 278447533}
   - {fileID: 12370331}
   - {fileID: 80930041}
-  endRoomPrefab: {fileID: 1164039607}
   noExitsPrefabs:
   - {fileID: 971404162}
   - {fileID: 80930041}
   - {fileID: 12370331}
   - {fileID: 620082339}
   minRoomsBetweenStartAndEnd: 3
-  EnemySpawnerPrefab: {fileID: 733199161}
 --- !u!4 &329930210
 Transform:
   m_ObjectHideFlags: 0
@@ -3441,6 +3441,7 @@ MonoBehaviour:
   movesLeft: 2
   isTurn: 0
   health: 100
+  maxHealth: 100
   healCount: 2
   healAmount: 10
   turnCounter: 0
@@ -6490,17 +6491,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36e600e4d3f456a46b886d6b319a682c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isTurnComplete: 0
-  health: 100
-  currentState: 0
-  currentTarget: 0
   player: {fileID: 330656358}
   companion: {fileID: 651719970}
   attackRange: 1
   moveSpeed: 15
-  movesLeft: 2
   moveDistance: 0.64
+  isTurnComplete: 0
+  attackDamage: 10
+  health: 100
+  movesLeft: 2
   isTurn: 0
+  currentState: 0
+  currentTarget: 0
 --- !u!61 &566887409
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -6768,22 +6770,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3fdd6854db16fd40a68835885ba6fc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isTurnComplete: 0
-  currentState: 0
+  enemies: []
   player: {fileID: 330656358}
-  health: 50
+  HealTarget: {fileID: 0}
   moveSpeed: 15
-  movesLeft: 2
   moveDistance: 0.64
   attackRange: 1
   rangedAttackRange: 2
+  isTurnComplete: 0
+  health: 50
+  maxHealth: 50
+  movesLeft: 2
   attackDamage: 10
   rangedAttackDamage: 5
   healCount: 2
   healAmount: 10
   turnCounter: 0
-  HealTarget: {fileID: 0}
   isTurn: 0
+  currentState: 0
 --- !u!61 &651719967
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -6921,24 +6925,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ec72224bc8ae6142a94a17f46a1edae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentState: 0
-  player: {fileID: 330656358}
   enemies: []
+  player: {fileID: 330656358}
+  HealTarget: {fileID: 0}
   moveSpeed: 15
   followDistance: 1.5
-  supportRange: 3
   attackRange: 1
   rangedAttackRange: 2
+  moveDistance: 0.64
+  supportRange: 3
   attackDamage: 10
   rangedAttackDamage: 5
   healCount: 2
   healAmount: 10
   turnCounter: 0
-  HealTarget: {fileID: 0}
-  moveDistance: 0.64
   isTurnComplete: 0
   isTurn: 0
   health: 50
+  maxHealth: 50
+  currentState: 0
 --- !u!1 &660685188
 GameObject:
   m_ObjectHideFlags: 0
@@ -7991,12 +7996,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85bc78d67e60a46449d0a144ecf25e65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemies: []
   enemyPrefab: {fileID: 1600343635}
   bossPrefab: {fileID: 566887407}
-  numberOfEnemies: 4
   spawnPoints: []
-  enemies: []
   currentRoomPosition: {fileID: 0}
+  numberOfEnemies: 4
 --- !u!4 &733199163
 Transform:
   m_ObjectHideFlags: 0
@@ -15373,10 +15378,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebb4b6d3d3e4f174793d2e0adb1a8023, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 330656355}
-  companion: {fileID: 651719965}
   enemies:
   - {fileID: 0}
+  player: {fileID: 330656355}
+  companion: {fileID: 651719965}
   turnText: {fileID: 1838793368}
   currentTurn: 0
 --- !u!4 &1266326916
@@ -22307,7 +22312,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1600343640}
   - component: {fileID: 1600343639}
-  - component: {fileID: 1600343638}
   - component: {fileID: 1600343637}
   - component: {fileID: 1600343636}
   m_Layer: 0
@@ -22329,17 +22333,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36e600e4d3f456a46b886d6b319a682c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isTurnComplete: 0
-  health: 30
-  currentState: 0
-  currentTarget: 0
   player: {fileID: 330656358}
   companion: {fileID: 651719970}
   attackRange: 1
   moveSpeed: 15
-  movesLeft: 2
   moveDistance: 0.64
+  isTurnComplete: 0
+  attackDamage: 5
+  health: 30
+  movesLeft: 2
   isTurn: 0
+  currentState: 0
+  currentTarget: 0
 --- !u!61 &1600343637
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -22385,33 +22390,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5781102, y: 0.5793242}
   m_EdgeRadius: 0
---- !u!50 &1600343638
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1600343635}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 7
 --- !u!212 &1600343639
 SpriteRenderer:
   m_ObjectHideFlags: 0

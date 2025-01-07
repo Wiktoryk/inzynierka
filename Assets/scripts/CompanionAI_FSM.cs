@@ -17,6 +17,7 @@ public enum CompanionState : byte
 
 public class CompanionAI_FSM : MonoBehaviour
 {
+    public List<GameObject> enemies = new List<GameObject>();
     public Transform player;
     public Transform HealTarget;
     private List<Vector3> failedMoves = new List<Vector3>();
@@ -28,6 +29,7 @@ public class CompanionAI_FSM : MonoBehaviour
     public float rangedAttackRange = 2.0f;
     public bool isTurnComplete = false;
     public int health = 50;
+    public int maxHealth = 50;
     public int movesLeft = 2;
     public int attackDamage = 10;
     public int rangedAttackDamage = 5;
@@ -60,6 +62,7 @@ public class CompanionAI_FSM : MonoBehaviour
             String moves = "";
             while (movesLeft > 0)
             {
+                enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
                 if (health < 30 && healCount > 0)
                 {
                     currentState = CompanionState.Heal;
@@ -70,9 +73,14 @@ public class CompanionAI_FSM : MonoBehaviour
                     currentState = CompanionState.Heal;
                     HealTarget = player;
                 }
-                else if (health < 30)
+                else if (health < 30 && enemies.Count > 0)
                 {
                     currentState = CompanionState.Evade;
+                }
+                if (health < maxHealth && enemies.Count == 0 && Vector3.Distance(transform.position, player.position) < 2)
+                {
+                    currentState = CompanionState.Heal;
+                    HealTarget = transform;
                 }
                 switch (currentState)
                 {
@@ -107,8 +115,7 @@ public class CompanionAI_FSM : MonoBehaviour
 
     void FollowPlayer()
     {
-        List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
-        foreach (GameObject enemy in allEnemies)
+        foreach (GameObject enemy in enemies)
         {
             if (Vector3.Distance(transform.position, enemy.transform.position) < rangedAttackRange)
             {
@@ -124,8 +131,7 @@ public class CompanionAI_FSM : MonoBehaviour
 
     void AttackEnemy()
     {
-        List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
-        foreach (GameObject enemy in allEnemies)
+        foreach (GameObject enemy in enemies)
         {
             if (Vector3.Distance(transform.position, enemy.transform.position) < attackRange)
             {
@@ -165,14 +171,17 @@ public class CompanionAI_FSM : MonoBehaviour
         if (HealTarget == transform)
         {
             health += healAmount;
+            health = (health > maxHealth) ? maxHealth : health;
             transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
             healCount--;
             movesLeft--;
         }
         else if (Vector3.Distance(transform.position, HealTarget.position) <= moveDistance)
         {
-            HealTarget.GetComponent<Player>().health += healAmount;
-            HealTarget.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(HealTarget.GetComponent<Player>());
+            var player = HealTarget.GetComponent<Player>();
+            player.health += healAmount;
+            player.health = (player.health > player.maxHealth) ? player.maxHealth : player.health;
+            HealTarget.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(player);
             healCount--;
             movesLeft--;
         }
@@ -247,9 +256,8 @@ public class CompanionAI_FSM : MonoBehaviour
     
     private void EvadeEnemies()
     {
-        List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
         Vector3 evadeDirection = Vector3.zero;
-        foreach (GameObject enemy in allEnemies)
+        foreach (GameObject enemy in enemies)
         {
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
 
