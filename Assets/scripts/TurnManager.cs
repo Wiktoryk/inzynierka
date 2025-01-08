@@ -15,18 +15,22 @@ public class TurnManager : MonoBehaviour
         PlayerTurn,
         CompanionTurn,
         EnemyTurn,
-        Waiting
+        Waiting,
+        Loading
     }
     
-    public TurnState currentTurn;
+    public TurnState currentTurn = TurnState.Loading;
     void Start()
     {
-        currentTurn = TurnState.PlayerTurn;
         UpdateTurnText();
     }
     
     void Update()
     {
+        if (currentTurn == TurnState.Loading)
+        {
+            return;
+        }
         if (currentTurn != TurnState.Waiting)
         {
             switch (currentTurn)
@@ -145,6 +149,14 @@ public class TurnManager : MonoBehaviour
             case TurnState.Waiting:
                 turnText.text = "Waiting";
                 break;
+            case TurnState.Loading:
+                turnText.text = "Loading";
+                break;  
         }
+    }
+    
+    public void StartTurns()
+    {
+        currentTurn = TurnState.PlayerTurn;
     }
 }

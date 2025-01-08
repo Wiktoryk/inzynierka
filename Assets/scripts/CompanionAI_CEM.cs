@@ -53,7 +53,6 @@ public class CompanionAI_CEM : MonoBehaviour
     public float attackRange = 1.0f;
     public float rangedAttackRange = 2.0f;
     public float moveDistance = 0.64f;
-    public int supportRange = 3;
     private int movesLeft = 2;
     public int attackDamage = 10;
     public int rangedAttackDamage = 5;
@@ -229,7 +228,8 @@ public class CompanionAI_CEM : MonoBehaviour
     float CalculateFollowPlayerEmpowerment()
     {
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        return (distanceToPlayer <= followDistance && distanceToPlayer > 1.0f) ? 1.3f : 0.5f;
+        float surroundingFactor = EvaluateSurroundings((player.position - transform.position).normalized * 0.64f);
+        return (distanceToPlayer <= followDistance && distanceToPlayer > 1.0f) ? 1.3f + surroundingFactor : 0.5f + surroundingFactor * 0.5f;
     }
     
     float CalculateAttackEmpowerment()
@@ -270,25 +270,37 @@ public class CompanionAI_CEM : MonoBehaviour
         {
             empowerment += (50 - playerHealth) * 0.2f;
         }
+        if (enemies.Count == 0 && Vector3.Distance(transform.position, player.position) < 2)
+        {
+            empowerment += 10;
+        }
         return empowerment;
     }
 
     float CalculateEvadeEmpowerment()
     {
         float empowerment = 0;
+        if (enemies.Count == 0)
+        {
+            return 0;
+        }
+
         if (health < 30)
         {
             empowerment += (30 - health) * 0.15f;
-        }
-        foreach (var enemy in enemies)
-        {
-            float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
-
-            if (distanceToEnemy < 3.0f)
+            foreach (var enemy in enemies)
             {
-                empowerment += (3.0f - distanceToEnemy) * 0.2f;
+                float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
+
+                if (distanceToEnemy < 3.0f)
+                {
+                    float surroundingFactor =
+                        EvaluateSurroundings((transform.position - enemy.transform.position).normalized * 0.64f);
+                    empowerment += (3.0f - distanceToEnemy) * 0.2f + surroundingFactor * 0.1f;
+                }
             }
         }
+
         return empowerment;
     }
     
@@ -431,9 +443,8 @@ public class CompanionAI_CEM : MonoBehaviour
 
     void Evade()
     {
-        List<GameObject> allEnemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
         Vector3 evadeDirection = Vector3.zero;
-        foreach (GameObject enemy in allEnemies)
+        foreach (GameObject enemy in enemies)
         {
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
 
@@ -542,6 +553,34 @@ public class CompanionAI_CEM : MonoBehaviour
         foreach (Collider2D collider in colliders)
         {
             if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Player") || collider.gameObject.CompareTag("Enemy")))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
+    float EvaluateSurroundings(Vector3 position)
+    {
+        int availableDirections = 0;
+
+        Vector3[] directions = { Vector3.up, Vector3.down, Vector3.left, Vector3.right };
+        foreach (var dir in directions)
+        {
+            Vector3 potentialMove = position + dir * 0.64f;
+            if (IsTileWalkable(potentialMove)) availableDirections++;
+        }
+        float openSpaceFactor = availableDirections / 4.0f; 
+        return openSpaceFactor; 
+    }
+    
+    bool IsTileWalkable(Vector3 position)
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(position, 0.1f);
+        foreach (Collider2D collider in colliders)
+        {
+            if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Enemy")))
             {
                 return false;
             }

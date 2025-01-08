@@ -29,6 +29,7 @@ public class DungeonGenerator : MonoBehaviour
         try
         {
             GenerateDungeon();
+            GameObject.Find("/TurnManager").GetComponent<TurnManager>().StartTurns();
         }
         catch (Exception e)
         {
@@ -135,6 +136,10 @@ public class DungeonGenerator : MonoBehaviour
         endRoom.GetComponent<Grid>().enabled = true;
         RemoveInvalidRooms();
         BackfillExits(Vector2Int.zero);
+        if (endPosition.x < 4)
+        {
+            throw new Exception("too short");
+        }
         GenerateEnemies(roomData);
     }
 
