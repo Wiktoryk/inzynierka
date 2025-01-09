@@ -3281,12 +3281,9 @@ MonoBehaviour:
   - {fileID: 1823276684}
   - {fileID: 1453932522}
   - {fileID: 1580246687}
-  - {fileID: 620082339}
   - {fileID: 1761129917}
   - {fileID: 603413932}
   - {fileID: 278447533}
-  - {fileID: 12370331}
-  - {fileID: 80930041}
   noExitsPrefabs:
   - {fileID: 971404162}
   - {fileID: 80930041}
@@ -15382,7 +15379,7 @@ MonoBehaviour:
   player: {fileID: 330656355}
   companion: {fileID: 651719965}
   turnText: {fileID: 1838793368}
-  currentTurn: 0
+  currentTurn: 4
 --- !u!4 &1266326916
 Transform:
   m_ObjectHideFlags: 0

@@ -53,6 +53,18 @@ public class DungeonGenerator : MonoBehaviour
         var stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
         currentPosition = PlaceNextRoom(currentPosition, maxSize, visited, stopwatch, roomPrefabs).Value;
+        if (hasMoreThan1Exit(currentPosition))
+        {
+            currentPosition += Vector2Int.right;
+            Vector3 position = new Vector3(currentPosition.x * 14, currentPosition.y * 14, 0);
+            GameObject roomPrefab = roomPrefabs.Where(prefab => prefab.name.Contains("leftEnterRightExit")).First();
+            GameObject room = Instantiate(roomPrefab, position, Quaternion.identity);
+            RoomData roomDataFix = this.AddComponent<RoomData>();
+            roomDataFix.Init(currentPosition, room);
+            generatedRooms[currentPosition] = roomDataFix;
+            room.SetActive(true);
+            room.GetComponent<Grid>().enabled = true;
+        }
         stopwatch.Reset();
         if (!generatedRooms[currentPosition].RoomObject.name.Contains("RightExit"))
         {
@@ -134,7 +146,7 @@ public class DungeonGenerator : MonoBehaviour
         generatedRooms[endPosition] = endRoomData;
         endRoom.SetActive(true);
         endRoom.GetComponent<Grid>().enabled = true;
-        RemoveInvalidRooms();
+        RemoveInvalidRooms(endPosition);
         BackfillExits(Vector2Int.zero);
         if (endPosition.x < 4)
         {
@@ -530,7 +542,7 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
 
-        if (exits.Count > 1)
+        if (exits.Count > 2)
         {
             return true;
         }
@@ -538,15 +550,19 @@ public class DungeonGenerator : MonoBehaviour
         return false;
     }
 
-    void RemoveInvalidRooms()
+    void RemoveInvalidRooms(Vector2Int endRoomPosition)
     {
         List<Vector2Int> invalidRooms = new List<Vector2Int>();
         foreach (var room in generatedRooms)
         {
+            if (room.Key == endRoomPosition + Vector2Int.left)
+            {
+                continue;
+            }
             List<Vector2Int> exits = GetAllExits(room.Key);
             foreach (var exit in exits)
             {
-                generatedRooms.TryGetValue(exit, out RoomData roomData);
+                generatedRooms.TryGetValue(room.Key + exit, out RoomData roomData);
                 if (roomData != null)
                 {
                     if (exit == Vector2Int.right && !roomData.RoomObject.name.Contains("leftEnter"))
@@ -603,7 +619,7 @@ public class DungeonGenerator : MonoBehaviour
             {
                 exits.Add(Vector2Int.right);
             }
-            else if (cellPos.x < -1 && !roomData.RoomObject.name.Contains("leftEnter"))
+            else if (cellPos.x < -1 && !(roomData.RoomObject.name.Contains("leftEnter") || roomData.RoomObject.name.Contains("end")))
             {
                 exits.Add(Vector2Int.left);
             }
