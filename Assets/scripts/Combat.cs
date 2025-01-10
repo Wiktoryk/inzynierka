@@ -71,12 +71,12 @@ public class Combat : MonoBehaviour
     
     void heal(GameObject target)
     {
-        if (Vector3.Distance(player.transform.position, target.transform.position) < 2.0f && player.GetComponent<Player>().movesLeft > 0 && player.GetComponent<Player>().healCount > 0)
+        Player playerScript = player.GetComponent<Player>();
+        if (Vector3.Distance(player.transform.position, target.transform.position) < 2.0f && playerScript.movesLeft > 0 && playerScript.healCount > 0)
         {
             if (target == player)
             {
-                Player playerScript = player.GetComponent<Player>();
-                playerScript.health += 10;
+                playerScript.health += playerScript.healAmount;
                 playerScript.health = (playerScript.health > playerScript.maxHealth) ? playerScript.maxHealth : playerScript.health;
                 player.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(playerScript);
                 playerScript.movesLeft--;
@@ -87,7 +87,7 @@ public class Combat : MonoBehaviour
                 if (ally.GetComponent<CompanionAI_FSM>().enabled)
                 {
                     CompanionAI_FSM allyScript = ally.GetComponent<CompanionAI_FSM>();
-                    allyScript.health += 10;
+                    allyScript.health += playerScript.healAmount;
                     allyScript.health = (allyScript.health > allyScript.maxHealth) ? allyScript.maxHealth : allyScript.health;
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(allyScript);
                     player.GetComponent<Player>().movesLeft--;
@@ -96,7 +96,7 @@ public class Combat : MonoBehaviour
                 else if (ally.GetComponent<CompanionAI_CEM>().enabled)
                 {
                     CompanionAI_CEM allyScript = ally.GetComponent<CompanionAI_CEM>();
-                    allyScript.health += 10;
+                    allyScript.health += playerScript.healAmount;
                     allyScript.health = (allyScript.health > allyScript.maxHealth) ? allyScript.maxHealth : allyScript.health;
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(allyScript);
                     player.GetComponent<Player>().movesLeft--;
@@ -105,7 +105,7 @@ public class Combat : MonoBehaviour
                 else
                 {
                     CompanionAI_neural allyScript = ally.GetComponent<CompanionAI_neural>();
-                    //allyScript.health += 10;
+                    //allyScript.health += playerScript.healAmount;
                     //allyScript.health = (allyScript.health > allyScript.maxHealth) ? allyScript.maxHealth : allyScript.health;
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(allyScript);
                     player.GetComponent<Player>().movesLeft--;

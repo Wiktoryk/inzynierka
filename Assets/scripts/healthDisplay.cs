@@ -18,6 +18,12 @@ public class healthDisplay : MonoBehaviour
         healthText.transform.position = transform.parent.position;
     }
 
+    public void UpdatePosition()
+    {
+        healthText.transform.position = transform.parent.position;
+        Debug.Log("Position updated");
+    }
+
     public void updateHealth<T>(T caller) where T : MonoBehaviour
     {
         var healthField = typeof(T).GetField("health");

@@ -38,6 +38,7 @@ public class CompanionAI_FSM : MonoBehaviour
     public int turnCounter = 0;
     public bool isTurn = false;
     private bool isBusy = false;
+    public bool isCombat = true;
     public CompanionState currentState;
 
     void Start()
@@ -52,7 +53,10 @@ public class CompanionAI_FSM : MonoBehaviour
         if (isTurn && !isTurnComplete && !isBusy)
         {
             isBusy = true;
-            turnCounter++;
+            if (isCombat)
+            {
+                turnCounter++;
+            }
             if (turnCounter % 3 == 0)
             {
                 healCount = 2;
@@ -203,6 +207,7 @@ public class CompanionAI_FSM : MonoBehaviour
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
             transform.position = trueTargetPositionV;
+            transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
             if (!checkValidPosition())
             {
                 movesLeft++;

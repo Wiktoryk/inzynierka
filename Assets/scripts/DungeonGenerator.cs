@@ -367,6 +367,19 @@ public class DungeonGenerator : MonoBehaviour
             if (roomData.Enemies.ToArray().Length == 0)
             {
                 roomData.IsCompleted = true;
+                GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().isCombat = false;
+                GameObject ally = GameObject.FindGameObjectWithTag("Ally");
+                if (ally != null)
+                {
+                    if (ally.GetComponent<CompanionAI_FSM>().enabled)
+                    {
+                        ally.GetComponent<CompanionAI_FSM>().isCombat = false;
+                    }
+                    else if (ally.GetComponent<CompanionAI_CEM>().enabled)
+                    {
+                        ally.GetComponent<CompanionAI_CEM>().isCombat = false;
+                    }
+                }
                 ActivateExits(roomData);
                 if (roomData.RoomObject.name.Contains("end"))
                 {
@@ -426,14 +439,29 @@ public class DungeonGenerator : MonoBehaviour
                 }
                 player.transform.position = nextRoomPositionV + displacement;
                 player.GetComponent<Player>().MoveToRoom(nextRoomPositionV + displacement);
-                if (GameObject.FindGameObjectWithTag("Ally") != null)
+                player.transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
+                GameObject ally = GameObject.FindGameObjectWithTag("Ally");
+                if (ally != null)
                 {
-                    GameObject.FindGameObjectWithTag("Ally").transform.position = nextRoomPositionV + displacement;
-                    GameObject.FindGameObjectWithTag("Ally").transform.position += new Vector3(0, 0.64f, 0);
+                    ally.transform.position = nextRoomPositionV + displacement;
+                    ally.transform.position += new Vector3(0, 0.64f, 0);
+                    ally.transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
                 }
 
                 if (!generatedRooms[nextRoomPosition].IsCompleted)
                 {
+                    player.GetComponent<Player>().isCombat = true;
+                    if (ally != null)
+                    {
+                        if (ally.GetComponent<CompanionAI_FSM>().enabled)
+                        {
+                            ally.GetComponent<CompanionAI_FSM>().isCombat = true;
+                        }
+                        else if (ally.GetComponent<CompanionAI_CEM>().enabled)
+                        {
+                            ally.GetComponent<CompanionAI_CEM>().isCombat = true;
+                        }
+                    }
                     if (generatedRooms[nextRoomPosition].RoomObject.name.Contains("end"))
                     {
                         GenerateEnemies(generatedRooms[nextRoomPosition], true);

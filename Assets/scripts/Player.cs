@@ -21,6 +21,7 @@ public class Player : MonoBehaviour
     public int healCount = 2;
     public int healAmount = 10;
     public int turnCounter = 0;
+    public bool isCombat = true;
     void Start()
     {
         targetPosition = transform.position;
@@ -32,7 +33,10 @@ public class Player : MonoBehaviour
     {
         if (isTurn)
         {
-            turnCounter++;
+            if (isCombat)
+            {
+                turnCounter++;
+            }
             if (turnCounter % 3 == 0)
             {
                 healCount = 2;
@@ -90,6 +94,7 @@ public class Player : MonoBehaviour
             {
                 transform.position = targetPosition;
                 isMoving = false;
+                transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
             }
         }
     }
@@ -102,6 +107,7 @@ public class Player : MonoBehaviour
             transform.position = Vector3.MoveTowards(transform.position, roomPosition, moveSpeed * Time.deltaTime);
         }
         transform.position = roomPosition;
+        transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
     }
 
     void OnTriggerEnter2D(Collider2D collision)

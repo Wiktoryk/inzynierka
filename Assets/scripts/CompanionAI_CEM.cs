@@ -64,6 +64,7 @@ public class CompanionAI_CEM : MonoBehaviour
     private bool isBusy = false;
     public int health = 50;
     public int maxHealth = 50;
+    public bool isCombat = true;
     public CompanionCEMState currentState;
     
     void Start()
@@ -79,7 +80,10 @@ public class CompanionAI_CEM : MonoBehaviour
     {
         if (isTurn && !isTurnComplete && !isBusy)
         {
-            turnCounter++;
+            if (isCombat)
+            {
+                turnCounter++;
+            }
             if (turnCounter % 3 == 0)
             {
                 healCount = 2;
@@ -506,6 +510,7 @@ public class CompanionAI_CEM : MonoBehaviour
             else
             {
                 failedMoves.Clear();
+                transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
             }
         }
     }

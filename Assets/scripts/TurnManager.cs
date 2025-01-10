@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using TMPro;
 
@@ -46,7 +48,6 @@ public class TurnManager : MonoBehaviour
                     break;
             }
         }
-        UpdateTurnText();
     }
     
     void HandlePlayerTurn()
@@ -56,7 +57,7 @@ public class TurnManager : MonoBehaviour
         {
             player.GetComponent<Player>().isTurnComplete = false;
             player.GetComponent<Player>().isTurn = false;
-            StartCoroutine(NextTurnAfterDelay(TurnState.CompanionTurn));
+            SwitchTurns(TurnState.CompanionTurn);
         }
     }
     
@@ -64,19 +65,20 @@ public class TurnManager : MonoBehaviour
     {
         if (companion == null)
         {
-            StartCoroutine(NextTurnAfterDelay(TurnState.EnemyTurn));
+            SwitchTurns(TurnState.EnemyTurn);
             return;
         }
         if (companion.GetComponent<CompanionAI_FSM>().enabled)
         {
             companion.GetComponent<CompanionAI_FSM>().isTurn = true;
             companion.GetComponent<CompanionAI_FSM>().PerformActions();
-            if (companion.GetComponent<CompanionAI_FSM>().isTurnComplete)
+            if (!companion.GetComponent<CompanionAI_FSM>().isTurnComplete)
             {
-                companion.GetComponent<CompanionAI_FSM>().isTurnComplete = false;
-                companion.GetComponent<CompanionAI_FSM>().isTurn = false;
-                StartCoroutine(NextTurnAfterDelay(TurnState.EnemyTurn));
+                return;
             }
+            companion.GetComponent<CompanionAI_FSM>().isTurnComplete = false;
+            companion.GetComponent<CompanionAI_FSM>().isTurn = false;
+            SwitchTurns(TurnState.EnemyTurn);
         }
         else if (companion.GetComponent<CompanionAI_CEM>().enabled)
         {
@@ -86,7 +88,7 @@ public class TurnManager : MonoBehaviour
             {
                 companion.GetComponent<CompanionAI_CEM>().isTurnComplete = false;
                 companion.GetComponent<CompanionAI_CEM>().isTurn = false;
-                StartCoroutine(NextTurnAfterDelay(TurnState.EnemyTurn));
+                SwitchTurns(TurnState.EnemyTurn);
             }
         }
     }
@@ -121,16 +123,21 @@ public class TurnManager : MonoBehaviour
                 enemyAI.isTurn = false;
             }
 
-            StartCoroutine(NextTurnAfterDelay(TurnState.PlayerTurn));
+            SwitchTurns(TurnState.PlayerTurn);
         }
     }
     
     IEnumerator NextTurnAfterDelay(TurnState nextTurn)
     {
         currentTurn = TurnState.Waiting;
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
         currentTurn = nextTurn;
-        Debug.Log("Switching to " + nextTurn);
+    }
+    
+    void SwitchTurns(TurnState nextTurn)
+    {
+        currentTurn = nextTurn;
+        Thread.Sleep(300);
     }
     
     void UpdateTurnText()
@@ -138,19 +145,19 @@ public class TurnManager : MonoBehaviour
         switch (currentTurn)
         {
             case TurnState.PlayerTurn:
-                turnText.text = "Player";
+                turnText.text = "Tura:Gracz";
                 break;
             case TurnState.CompanionTurn:
-                turnText.text = "Companion";
+                turnText.text = "Tura:Towarzysz";
                 break;
             case TurnState.EnemyTurn:
-                turnText.text = "Enemy";
+                turnText.text = "Tura:Wrogowie";
                 break;
             case TurnState.Waiting:
-                turnText.text = "Waiting";
+                turnText.text = "Oczekiwanie";
                 break;
             case TurnState.Loading:
-                turnText.text = "Loading";
+                turnText.text = "Ładowanie";
                 break;  
         }
     }
@@ -158,5 +165,10 @@ public class TurnManager : MonoBehaviour
     public void StartTurns()
     {
         currentTurn = TurnState.PlayerTurn;
+    }
+
+    private void LateUpdate()
+    {
+        UpdateTurnText();
     }
 }

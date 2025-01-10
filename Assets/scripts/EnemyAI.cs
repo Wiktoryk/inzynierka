@@ -164,6 +164,7 @@ public class EnemyAI : MonoBehaviour
             else
             {
                 failedMoves.Clear();
+                transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
             }
         }
     }
