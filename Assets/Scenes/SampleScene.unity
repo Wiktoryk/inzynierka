@@ -1460,7 +1460,7 @@ GameObject:
   - component: {fileID: 276112308}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3442,6 +3442,7 @@ MonoBehaviour:
   healCount: 2
   healAmount: 10
   turnCounter: 0
+  isCombat: 1
 --- !u!61 &330656360
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -4028,7 +4029,7 @@ GameObject:
   - component: {fileID: 406429971}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6775,8 +6776,8 @@ MonoBehaviour:
   attackRange: 1
   rangedAttackRange: 2
   isTurnComplete: 0
-  health: 50
-  maxHealth: 50
+  health: 60
+  maxHealth: 60
   movesLeft: 2
   attackDamage: 10
   rangedAttackDamage: 5
@@ -6784,6 +6785,7 @@ MonoBehaviour:
   healAmount: 10
   turnCounter: 0
   isTurn: 0
+  isCombat: 1
   currentState: 0
 --- !u!61 &651719967
 BoxCollider2D:
@@ -6939,6 +6941,7 @@ MonoBehaviour:
   isTurn: 0
   health: 50
   maxHealth: 50
+  isCombat: 1
   currentState: 0
 --- !u!1 &660685188
 GameObject:
@@ -8683,7 +8686,7 @@ GameObject:
   - component: {fileID: 780268821}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11789,7 +11792,7 @@ GameObject:
   - component: {fileID: 993692986}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -13403,7 +13406,7 @@ GameObject:
   - component: {fileID: 1090108660}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -15408,7 +15411,7 @@ GameObject:
   - component: {fileID: 1298331296}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -16516,7 +16519,7 @@ GameObject:
   - component: {fileID: 1357951886}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -18430,7 +18433,7 @@ GameObject:
   - component: {fileID: 1533679390}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -21203,7 +21206,7 @@ GameObject:
   - component: {fileID: 1593523746}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -23546,7 +23549,7 @@ GameObject:
   - component: {fileID: 1791833854}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -24654,7 +24657,7 @@ GameObject:
   - component: {fileID: 1801909551}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -26400,7 +26403,7 @@ GameObject:
   - component: {fileID: 1826815055}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28247,7 +28250,7 @@ GameObject:
   - component: {fileID: 1905508289}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -29756,7 +29759,7 @@ GameObject:
   - component: {fileID: 1926818361}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -31266,7 +31269,7 @@ GameObject:
   - component: {fileID: 2044502088}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32374,7 +32377,7 @@ GameObject:
   - component: {fileID: 2066947361}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -34133,7 +34136,7 @@ GameObject:
   - component: {fileID: 2089565442}
   m_Layer: 0
   m_Name: walk
-  m_TagString: Untagged
+  m_TagString: walk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

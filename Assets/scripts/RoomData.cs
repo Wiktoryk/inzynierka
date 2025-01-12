@@ -22,4 +22,21 @@ public class RoomData : MonoBehaviour
             }
         }
     }
+    
+    public bool IsSpawnPointOverWalkTile(Vector3 spawnPoint)
+    {
+        Transform grid = RoomObject.GetComponent<Grid>().transform;
+        foreach (Transform tile in grid)
+        {
+            if (tile.CompareTag("walk"))
+            {
+                float distance = Vector3.Distance(tile.position, spawnPoint);
+                if (distance < 0.1f)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

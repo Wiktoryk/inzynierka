@@ -29,12 +29,12 @@ public class EnemySpawner : MonoBehaviour
             // {
             //     currentRoomPositionV.x += 12;
             // }
-            currentRoomPositionV.x += 7 * roomPositionP.x;
+            currentRoomPositionV.x += 6 * roomPositionP.x;
         }
 
         if (roomPositionP.y != 0)
         {
-            currentRoomPositionV.y += 7 * roomPositionP.y;
+            currentRoomPositionV.y += 6 * roomPositionP.y;
         }
 
         if (isBossRoom)
@@ -42,14 +42,24 @@ public class EnemySpawner : MonoBehaviour
             bool correctSpawn = false;
             while (!correctSpawn)
             {
-                int xCoord = Random.Range((int)currentRoomPositionV.x - 5, (int)currentRoomPositionV.x + 5);
+                int xCoord = Random.Range((int)currentRoomPositionV.x - 4, (int)currentRoomPositionV.x + 4);
                 int yCoord = Random.Range((int)currentRoomPositionV.y - 3, (int)currentRoomPositionV.y + 3);
-                float snappedX = xCoord * 0.64f + 0.32f;
-                float snappedY = yCoord * 0.64f + 0.32f;
+                float snappedX = xCoord * 0.64f + 0.32f - 0.16f * roomPositionP.x;
+                float snappedY = yCoord * 0.64f + 0.32f - 0.16f * roomPositionP.y;
                 Transform spawnPoint = new GameObject().transform;
                 spawnPoint.position = new Vector3(snappedX, snappedY, 0.0f);
                 correctSpawn = true;
                 if (Vector3.Distance(spawnPoint.position, GameObject.Find("Player").transform.position) < 2)
+                {
+                    Destroy(spawnPoint.gameObject);
+                    correctSpawn = false;
+                }
+                if (Vector3.Distance(spawnPoint.position, currentRoomPositionV) > 4)
+                {
+                    Destroy(spawnPoint.gameObject);
+                    correctSpawn = false;
+                }
+                if (roomPosition.IsSpawnPointOverWalkTile(spawnPoint.position))
                 {
                     Destroy(spawnPoint.gameObject);
                     correctSpawn = false;
@@ -65,15 +75,24 @@ public class EnemySpawner : MonoBehaviour
         {
             for (int i = 0; i < numberOfEnemies; i++)
             {
-                int xCoord = Random.Range((int)currentRoomPositionV.x - 5, (int)currentRoomPositionV.x + 5);
+                int xCoord = Random.Range((int)currentRoomPositionV.x - 4, (int)currentRoomPositionV.x + 4);
                 int yCoord = Random.Range((int)currentRoomPositionV.y - 3, (int)currentRoomPositionV.y + 3);
-                float snappedX = xCoord * 0.64f + 0.32f;
-                float snappedY = yCoord * 0.64f + 0.32f;
+                float snappedX = xCoord * 0.64f + 0.32f - 0.16f * roomPositionP.x;
+                float snappedY = yCoord * 0.64f + 0.32f - 0.16f * roomPositionP.y;
                 Transform spawnPoint = new GameObject().transform;
                 spawnPoint.position = new Vector3(snappedX, snappedY, 0.0f);
-                //spawnPoint.position = new Vector3(xCoord, yCoord, 0);
-                //ensure that the spawn point is not too close to the player or other spawn points
-                if (Vector3.Distance(spawnPoint.position, GameObject.Find("Player").transform.position) < 2)
+                if (Vector3.Distance(spawnPoint.position, GameObject.Find("Player").transform.position) < 1)
+                {
+                    i--;
+                    Destroy(spawnPoint.gameObject);
+                    continue;
+                }
+                if (Vector3.Distance(spawnPoint.position, roomPosition.RoomObject.transform.position) > 4)
+                {
+                    Destroy(spawnPoint.gameObject);
+                    continue;
+                }
+                if (roomPosition.IsSpawnPointOverWalkTile(spawnPoint.position))
                 {
                     i--;
                     Destroy(spawnPoint.gameObject);
@@ -106,7 +125,7 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnEnemies()
     {
-        for (int i = 0; i < numberOfEnemies; i++)
+        for (int i = 0; i < spawnPoints.Count; i++)
         {
             GameObject enemy = Instantiate(enemyPrefab, spawnPoints[i].position, Quaternion.identity);
             enemies.Add(enemy);

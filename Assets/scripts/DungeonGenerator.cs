@@ -56,7 +56,7 @@ public class DungeonGenerator : MonoBehaviour
         if (hasMoreThan1Exit(currentPosition))
         {
             currentPosition += Vector2Int.right;
-            Vector3 position = new Vector3(currentPosition.x * 14, currentPosition.y * 14, 0);
+            Vector3 position = new Vector3(currentPosition.x * 12, currentPosition.y * 12, 0);
             GameObject roomPrefab = roomPrefabs.Where(prefab => prefab.name.Contains("leftEnterRightExit")).First();
             GameObject room = Instantiate(roomPrefab, position, Quaternion.identity);
             RoomData roomDataFix = this.AddComponent<RoomData>();
@@ -85,7 +85,7 @@ public class DungeonGenerator : MonoBehaviour
                         chosen = true;
                         continue;
                     }
-                    Vector3 position3 = new Vector3(position.x * 14, position.y * 14, 0);
+                    Vector3 position3 = new Vector3(position.x * 12, position.y * 12, 0);
                     GameObject roomPrefab = roomPrefabs[0];
                     foreach (GameObject prefab in roomPrefabs)
                     {
@@ -114,7 +114,7 @@ public class DungeonGenerator : MonoBehaviour
                     {
                         break;
                     }
-                    Vector3 position3 = new Vector3(position.x * 14, position.y * 14, 0);
+                    Vector3 position3 = new Vector3(position.x * 12, position.y * 12, 0);
                     GameObject roomPrefab = roomPrefabs[0];
                     foreach (GameObject prefab in roomPrefabs)
                     {
@@ -140,7 +140,7 @@ public class DungeonGenerator : MonoBehaviour
         }
         Vector2Int endPosition = currentPosition + Vector2Int.right;
         Vector3 endingPosition = new Vector3(endPosition.x, endPosition.y, 0);
-        GameObject endRoom = Instantiate(endRoomPrefab, endingPosition * 14, Quaternion.identity);
+        GameObject endRoom = Instantiate(endRoomPrefab, endingPosition * 12, Quaternion.identity);
         RoomData endRoomData = this.AddComponent<RoomData>();
         endRoomData.Init(endPosition, endRoom);
         generatedRooms[endPosition] = endRoomData;
@@ -185,7 +185,7 @@ public class DungeonGenerator : MonoBehaviour
             {
                 continue;
             }
-            Vector3 roomPosition = new Vector3(selectedExit.x * 14, selectedExit.y * 14, 0);
+            Vector3 roomPosition = new Vector3(selectedExit.x * 12, selectedExit.y * 12, 0);
             Vector2Int direction = selectedExit - currentPos;
             List<GameObject> matchingPrefabs = new List<GameObject>();
             foreach (GameObject prefab in prefabs)
@@ -287,7 +287,7 @@ public class DungeonGenerator : MonoBehaviour
                 if (generatedRooms.ContainsKey(exitPosition))
                     continue;
 
-                Vector3 newRoomPosition = new Vector3(exitPosition.x * 14, exitPosition.y * 14, 0);
+                Vector3 newRoomPosition = new Vector3(exitPosition.x * 12, exitPosition.y * 12, 0);
                 Vector2Int direction = exitPosition - roomPosition;
                 List<GameObject> matchingPrefabs = new List<GameObject>();
                 foreach (GameObject prefab in noExitsPrefabs)
@@ -325,7 +325,7 @@ public class DungeonGenerator : MonoBehaviour
             {
                 continue;
             }
-            Vector3 roomPosition = new Vector3(exit.x * 14, exit.y * 14, 0);
+            Vector3 roomPosition = new Vector3(exit.x * 12, exit.y * 12, 0);
             Vector2Int direction = exit - position;
             List<GameObject> matchingPrefabs = new List<GameObject>();
             foreach (GameObject prefab in noExitsPrefabs)
@@ -399,16 +399,17 @@ public class DungeonGenerator : MonoBehaviour
             {
                 exitDirection = Vector2Int.right;
             }
-            else
+            else if (player.transform.position.x - roomData.RoomObject.transform.position.x < -2f)
             {
-                if (player.transform.position.y - roomData.RoomObject.transform.position.y > 1f)
-                {
-                    exitDirection = Vector2Int.up;
-                }
-                else if (player.transform.position.y - roomData.RoomObject.transform.position.y < -1f)
-                {
-                    exitDirection = Vector2Int.down;
-                }
+                exitDirection = Vector2Int.left;
+            }
+            else if (player.transform.position.y - roomData.RoomObject.transform.position.y > 1f)
+            {
+                exitDirection = Vector2Int.up;
+            }
+            else if (player.transform.position.y - roomData.RoomObject.transform.position.y < -1f)
+            {
+                exitDirection = Vector2Int.down;
             }
             Vector2Int nextRoomPosition = GetNextRoomPosition(CurrentRoomPosition, exitDirection);
             if (generatedRooms.ContainsKey(nextRoomPosition))
@@ -421,6 +422,8 @@ public class DungeonGenerator : MonoBehaviour
                 GameObject.Find("Canvas").transform.position -= RoomDistance;
                 String roomName = generatedRooms[CurrentRoomPosition].RoomObject.name;
                 Vector3 displacement = new Vector3(0.32f, 0.32f, 0);
+                //displacement += new Vector3(0.16f * nextRoomPosition.x, 0.16f * nextRoomPosition.y, 0);
+                //Vector3 displacement = new Vector3(0, 0, 0);
                 if (roomName.StartsWith("left") || roomName.StartsWith("end"))
                 {
                     displacement += new Vector3(-3.2f, 0, 0);
@@ -437,8 +440,11 @@ public class DungeonGenerator : MonoBehaviour
                 {
                     displacement += new Vector3(0, -1.92f, 0);
                 }
+                //displacement.x = displacement.x * 0.64f - 0.32f;
+                //displacement.y = displacement.y * 0.64f - 0.32f;
                 player.transform.position = nextRoomPositionV + displacement;
                 player.GetComponent<Player>().MoveToRoom(nextRoomPositionV + displacement);
+                player.GetComponent<Player>().previousPosition = player.transform.position;
                 player.transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
                 GameObject ally = GameObject.FindGameObjectWithTag("Ally");
                 if (ally != null)

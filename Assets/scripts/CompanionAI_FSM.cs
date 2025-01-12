@@ -28,8 +28,8 @@ public class CompanionAI_FSM : MonoBehaviour
     public float attackRange = 1.0f;
     public float rangedAttackRange = 2.0f;
     public bool isTurnComplete = false;
-    public int health = 50;
-    public int maxHealth = 50;
+    public int health = 60;
+    public int maxHealth = 60;
     public int movesLeft = 2;
     public int attackDamage = 10;
     public int rangedAttackDamage = 5;
@@ -56,12 +56,13 @@ public class CompanionAI_FSM : MonoBehaviour
             if (isCombat)
             {
                 turnCounter++;
+                if (turnCounter % 3 == 0)
+                {
+                    healCount = 2;
+                    turnCounter = 0;
+                }
             }
-            if (turnCounter % 3 == 0)
-            {
-                healCount = 2;
-                turnCounter = 0;
-            }
+
             String states = "";
             String moves = "";
             while (movesLeft > 0)
@@ -112,7 +113,6 @@ public class CompanionAI_FSM : MonoBehaviour
                 moves += transform.position + ";";
             }
             Debug.Log(states);
-            Debug.Log(moves);
             CompleteTurn();
         }
     }

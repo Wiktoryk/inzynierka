@@ -21,7 +21,7 @@ public class healthDisplay : MonoBehaviour
     public void UpdatePosition()
     {
         healthText.transform.position = transform.parent.position;
-        Debug.Log("Position updated");
+        //Debug.Log("Position updated");
     }
 
     public void updateHealth<T>(T caller) where T : MonoBehaviour

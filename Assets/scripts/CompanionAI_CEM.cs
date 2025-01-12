@@ -83,12 +83,14 @@ public class CompanionAI_CEM : MonoBehaviour
             if (isCombat)
             {
                 turnCounter++;
+
+                if (turnCounter % 3 == 0)
+                {
+                    healCount = 2;
+                    turnCounter = 0;
+                }
             }
-            if (turnCounter % 3 == 0)
-            {
-                healCount = 2;
-                turnCounter = 0;
-            }
+
             isBusy = true;
             String log = "";
             while (movesLeft > 0)

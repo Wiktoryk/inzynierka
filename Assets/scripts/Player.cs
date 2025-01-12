@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 public class Player : MonoBehaviour
 {
     private Vector3 targetPosition;
-    private Vector3 previousPosition;
+    public Vector3 previousPosition;
     public float moveDistance = 0.64f;
     public float moveSpeed = 64f;
     private int horizontal;
@@ -36,12 +36,13 @@ public class Player : MonoBehaviour
             if (isCombat)
             {
                 turnCounter++;
+                if (turnCounter % 3 == 0)
+                {
+                    healCount = 2;
+                    turnCounter = 0;
+                }
             }
-            if (turnCounter % 3 == 0)
-            {
-                healCount = 2;
-                turnCounter = 0;
-            }
+
             if (!isTurnComplete && !isMoving && movesLeft > 0)
             {
                 HandleMovementInput();
@@ -49,6 +50,11 @@ public class Player : MonoBehaviour
 
             MoveToTarget();
             if (!isMoving && Input.GetKeyDown(KeyCode.Space))
+            {
+                isTurnComplete = true;
+                movesLeft = 2;
+            }
+            if (!isMoving && movesLeft <= 0)
             {
                 isTurnComplete = true;
                 movesLeft = 2;
@@ -112,12 +118,15 @@ public class Player : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Ally"))
+        if (isTurn)
         {
-            transform.position = previousPosition;
-            targetPosition = previousPosition;
-            isMoving = false;
-            movesLeft++;
+            if (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Ally"))
+            {
+                transform.position = previousPosition;
+                targetPosition = previousPosition;
+                isMoving = false;
+                movesLeft++;
+            }
         }
         if (collision.CompareTag("move"))
         {
