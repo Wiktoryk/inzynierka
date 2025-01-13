@@ -55,8 +55,7 @@ public class CompanionAI_FSM : MonoBehaviour
             isBusy = true;
             if (isCombat)
             {
-                turnCounter++;
-                if (turnCounter % 3 == 0)
+                if (turnCounter >= 3)
                 {
                     healCount = 2;
                     turnCounter = 0;
@@ -64,29 +63,32 @@ public class CompanionAI_FSM : MonoBehaviour
             }
 
             String states = "";
-            String moves = "";
             while (movesLeft > 0)
             {
                 enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
-                if (health < 30 && healCount > 0)
+                if (healCount > 0)
                 {
-                    currentState = CompanionState.Heal;
-                    HealTarget = transform;
-                }
-                else if (player.GetComponent<Player>().health < 50 && healCount > 0)
-                {
-                    currentState = CompanionState.Heal;
-                    HealTarget = player;
+                    if (player.GetComponent<Player>().health < 50)
+                    {
+                        currentState = CompanionState.Heal;
+                        HealTarget = player;
+                    }
+                    else if (health < 30)
+                    {
+                        currentState = CompanionState.Heal;
+                        HealTarget = transform;
+                    }
+                    else if (health < maxHealth && enemies.Count == 0 && Vector3.Distance(transform.position, player.position) < 2)
+                    {
+                        currentState = CompanionState.Heal;
+                        HealTarget = transform;
+                    }
                 }
                 else if (health < 30 && enemies.Count > 0)
                 {
                     currentState = CompanionState.Evade;
                 }
-                if (health < maxHealth && enemies.Count == 0 && Vector3.Distance(transform.position, player.position) < 2)
-                {
-                    currentState = CompanionState.Heal;
-                    HealTarget = transform;
-                }
+                
                 switch (currentState)
                 {
                     case CompanionState.Idle:
@@ -110,7 +112,6 @@ public class CompanionAI_FSM : MonoBehaviour
                         EvadeEnemies();
                         break;
                 }
-                moves += transform.position + ";";
             }
             Debug.Log(states);
             CompleteTurn();
@@ -225,7 +226,7 @@ public class CompanionAI_FSM : MonoBehaviour
     {
         isTurnComplete = true;
         isTurn = false;
-        
+        turnCounter++;
         movesLeft = 2;
         failedMoves.Clear();
         isBusy = false;

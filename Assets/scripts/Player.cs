@@ -35,8 +35,7 @@ public class Player : MonoBehaviour
         {
             if (isCombat)
             {
-                turnCounter++;
-                if (turnCounter % 3 == 0)
+                if (turnCounter >= 3)
                 {
                     healCount = 2;
                     turnCounter = 0;
@@ -53,11 +52,13 @@ public class Player : MonoBehaviour
             {
                 isTurnComplete = true;
                 movesLeft = 2;
+                turnCounter++;
             }
             if (!isMoving && movesLeft <= 0)
             {
                 isTurnComplete = true;
                 movesLeft = 2;
+                turnCounter++;
             }
         }
     }

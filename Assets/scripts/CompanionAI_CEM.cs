@@ -82,9 +82,7 @@ public class CompanionAI_CEM : MonoBehaviour
         {
             if (isCombat)
             {
-                turnCounter++;
-
-                if (turnCounter % 3 == 0)
+                if (turnCounter >= 3)
                 {
                     healCount = 2;
                     turnCounter = 0;
@@ -493,6 +491,7 @@ public class CompanionAI_CEM : MonoBehaviour
         isTurn = false;
         isBusy = false;
         movesLeft = 2;
+        turnCounter++;
     }
     
     void MoveTowardsTarget()
