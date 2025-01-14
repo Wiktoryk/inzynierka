@@ -54,7 +54,7 @@ public class EnemySpawner : MonoBehaviour
                     Destroy(spawnPoint.gameObject);
                     correctSpawn = false;
                 }
-                if (Vector3.Distance(spawnPoint.position, currentRoomPositionV) > 4)
+                if (Vector3.Distance(spawnPoint.position, roomPosition.RoomObject.transform.position) > 4)
                 {
                     Destroy(spawnPoint.gameObject);
                     correctSpawn = false;

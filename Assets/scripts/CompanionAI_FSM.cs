@@ -181,6 +181,10 @@ public class CompanionAI_FSM : MonoBehaviour
             movesLeft--;
             MoveTowardsTarget();
         }
+        else
+        {
+            currentState = CompanionState.FollowPlayer;
+        }
     }
     
     void Heal()
