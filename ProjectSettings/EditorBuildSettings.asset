@@ -17,4 +17,5 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Instrukcja.unity
     guid: 3d1c65f85933367438041121c8bd5376
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.ml-agents.settings: {fileID: 11400000, guid: 852581089bf208e469ec851205d55ad7, type: 2}

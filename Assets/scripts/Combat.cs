@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Combat : MonoBehaviour
@@ -44,9 +45,23 @@ public class Combat : MonoBehaviour
                 Debug.Log("No target found at that location");
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            heal(player);
+        }
+        if (Input.GetKeyDown(KeyCode.Y))
+        {
+            heal(ally);
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            GameObject closestEnemy = GameObject.FindGameObjectsWithTag("Enemy").OrderBy(e => Vector3.Distance(e.transform.position, player.transform.position)).First();
+            PerformCombat(closestEnemy);
+        }
     }
 
-    void PerformCombat(GameObject enemy)
+    public void PerformCombat(GameObject enemy)
     {
         if (Vector3.Distance(player.transform.position, enemy.transform.position) < 2.0f && player.GetComponent<Player>().movesLeft > 0)
         {
@@ -69,7 +84,7 @@ public class Combat : MonoBehaviour
         }
     }
     
-    void heal(GameObject target)
+    public void heal(GameObject target)
     {
         Player playerScript = player.GetComponent<Player>();
         if (Vector3.Distance(player.transform.position, target.transform.position) < 2.0f && playerScript.movesLeft > 0 && playerScript.healCount > 0)

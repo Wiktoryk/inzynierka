@@ -23,18 +23,29 @@ public class DungeonGenerator : MonoBehaviour
     public GameObject[] roomPrefabs;
     public GameObject[] noExitsPrefabs;
     public int minRoomsBetweenStartAndEnd = 3;
+    public bool generationDone = false;
     
     void Start()
     {
-        try
+        while (!generationDone)
         {
-            GenerateDungeon();
-            GameObject.Find("/TurnManager").GetComponent<TurnManager>().StartTurns();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e.Message);
-            SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+            try
+            {
+                GenerateDungeon();
+                generationDone = true;
+                GameObject.Find("/TurnManager").GetComponent<TurnManager>().StartTurns();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.Message);
+                //SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+                //Destroy every room in generatedRooms and clear it
+                foreach (var room in generatedRooms)
+                {
+                    Destroy(room.Value.RoomObject);
+                }
+                generatedRooms.Clear();
+            }
         }
     }
 
@@ -368,7 +379,8 @@ public class DungeonGenerator : MonoBehaviour
             if (roomData.Enemies.ToArray().Length == 0)
             {
                 roomData.IsCompleted = true;
-                GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().isCombat = false;
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                player.GetComponent<Player>().isCombat = false;
                 GameObject ally = GameObject.FindGameObjectWithTag("Ally");
                 if (ally != null)
                 {
@@ -384,7 +396,18 @@ public class DungeonGenerator : MonoBehaviour
                 ActivateExits(roomData);
                 if (roomData.RoomObject.name.Contains("end"))
                 {
-                    SceneManager.LoadScene("Scenes/WinScene");
+                    PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                    Player playerScript = player.GetComponent<Player>();
+                    float reward = 0;
+                    reward += (playerScript.health / (float)playerScript.maxHealth) * 0.7f;
+                    if (ally.GetComponent<CompanionAI_FSM>().health > 0)
+                    {
+                        reward += 0.3f;
+                    }
+                    playerAgent.SetReward(reward);
+                    playerAgent.EndEpisode();
+                    //SceneManager.LoadScene("Scenes/WinScene");
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 }
             }
         }
