@@ -21,8 +21,8 @@ public class CompanionAI_FSM : MonoBehaviour
     public Transform player;
     public Transform HealTarget;
     private List<Vector3> failedMoves = new List<Vector3>();
-    private Vector3 startingPosition;
-    private Vector3 targetPosition;
+    public Vector3 startingPosition;
+    public Vector3 targetPosition;
     public float moveSpeed = 15f;
     public float moveDistance = 0.64f;
     public float attackRange = 1.0f;
@@ -63,6 +63,7 @@ public class CompanionAI_FSM : MonoBehaviour
             }
 
             String states = "";
+            String moves = "";
             while (movesLeft > 0)
             {
                 enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
@@ -93,6 +94,11 @@ public class CompanionAI_FSM : MonoBehaviour
                 {
                     case CompanionState.Idle:
                         states += "Idle;";
+                        if (Vector3.Distance(transform.position, player.position) < 1)
+                        {
+                            movesLeft = 0;
+                            break;
+                        }
                         currentState = CompanionState.FollowPlayer;
                         break;
                     case CompanionState.FollowPlayer:
@@ -112,8 +118,10 @@ public class CompanionAI_FSM : MonoBehaviour
                         EvadeEnemies();
                         break;
                 }
+                moves += transform.position + ";";
             }
             Debug.Log(states);
+            Debug.Log(moves);
             CompleteTurn();
         }
     }
@@ -142,7 +150,7 @@ public class CompanionAI_FSM : MonoBehaviour
             {
                 enemy.GetComponent<EnemyAI>().TakeDamage(attackDamage);
                 movesLeft--;
-                break;
+                return;
             }
         
             int result = Random.Range(0, 1);
@@ -152,20 +160,20 @@ public class CompanionAI_FSM : MonoBehaviour
                 {
                     enemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
                     movesLeft--;
-                    break;
+                    return;
                 }
                 targetPosition = enemy.transform.position;
                 startingPosition = transform.position;
                 movesLeft--;
                 MoveTowardsTarget();
-                break;
+                return;
 
             }
             targetPosition = enemy.transform.position;
             startingPosition = transform.position;
             movesLeft--;
             MoveTowardsTarget();
-            break;
+            return;
 
         }
         currentState = CompanionState.FollowPlayer;
@@ -220,6 +228,59 @@ public class CompanionAI_FSM : MonoBehaviour
                 failedMoves.Clear();
             }
         }
+        // Vector3Int start = Vector3Int.FloorToInt(transform.position);
+        // Vector3Int end = Vector3Int.FloorToInt(targetPosition);
+        // HashSet<Vector3Int> dynamic = new HashSet<Vector3Int>();
+        // dynamic.Add(Vector3Int.FloorToInt(player.position));
+        // foreach (var enemy in enemies)
+        // {
+        //     dynamic.Add(Vector3Int.FloorToInt(enemy.transform.position));
+        // }
+        // List<Vector3> path = Pathfinding.Instance.FindPath(start, end, dynamic);
+        // if (path.Count > 0)
+        // {
+        //     Vector3 nextPosition = path[0];
+        //     if (Vector3.Distance(transform.position, nextPosition) <= moveDistance)
+        //     {
+        //         if (!failedMoves.Contains(nextPosition))
+        //         {
+        //             transform.position = nextPosition;
+        //             transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
+        //         }
+        //     }
+        //     else
+        //     {
+        //         Vector3 difference = nextPosition - transform.position;
+        //         List<Vector3> possibleMoves = new List<Vector3>
+        //         {
+        //             new Vector3(Mathf.Sign(difference.x) * moveDistance, 0, 0),
+        //             new Vector3(0, Mathf.Sign(difference.y) * moveDistance, 0)
+        //         };
+        //         if (Math.Abs(difference.x) > Math.Abs(difference.y) && !failedMoves.Contains(possibleMoves[0]))
+        //         {
+        //             transform.position += possibleMoves[0];
+        //         }
+        //         else if (!failedMoves.Contains(possibleMoves[1]))
+        //         {
+        //             transform.position += possibleMoves[1];
+        //         }
+        //     }
+        //     if (!checkValidPosition())
+        //     {
+        //         movesLeft++;
+        //         transform.position = startingPosition;
+        //         failedMoves.Add(nextPosition);
+        //     }
+        //     else
+        //     {
+        //         failedMoves.Clear();
+        //     }
+        // }
+        // else
+        // {
+        //     //throw new Exception("No path found");
+        //     currentState = CompanionState.Idle;
+        // }
     }
 
     void CompleteTurn()
@@ -235,13 +296,13 @@ public class CompanionAI_FSM : MonoBehaviour
     Vector3? MoveTowardsInfo(Vector3 targetPositionM)
     {
         Vector3 difference = targetPositionM - transform.position;
-
+    
         List<Vector3> possibleMoves = new List<Vector3>
         {
             new Vector3(Mathf.Sign(difference.x) * moveDistance, 0, 0),
             new Vector3(0, Mathf.Sign(difference.y) * moveDistance, 0)
         };
-
+    
         if (Mathf.Abs(difference.x) > Mathf.Abs(difference.y))
         {
             if (!failedMoves.Contains(possibleMoves[0]))
@@ -256,7 +317,7 @@ public class CompanionAI_FSM : MonoBehaviour
                 return possibleMoves[1];
             }
         }
-
+    
         return null;
     }
     

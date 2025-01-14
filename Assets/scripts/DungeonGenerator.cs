@@ -49,6 +49,7 @@ public class DungeonGenerator : MonoBehaviour
         generatedRooms[currentPosition] = roomData;
         startRoom.SetActive(true);
         startRoom.GetComponent<Grid>().enabled = true;
+        //Pathfinding.Instance.InitGrid(startingPosition);
         int maxSize = Random.Range(minRoomsBetweenStartAndEnd, minRoomsBetweenStartAndEnd + 2);
         var stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
@@ -451,6 +452,21 @@ public class DungeonGenerator : MonoBehaviour
                 {
                     ally.transform.position = nextRoomPositionV + displacement;
                     ally.transform.position += new Vector3(0, 0.64f, 0);
+                    if (ally.GetComponent<CompanionAI_FSM>().enabled)
+                    {
+                        ally.GetComponent<CompanionAI_FSM>().startingPosition = ally.transform.position;
+                        ally.GetComponent<CompanionAI_FSM>().targetPosition = ally.transform.position;
+                    }
+                    // else if (ally.GetComponent<CompanionAI_CEM>().enabled)
+                    // {
+                    //     ally.GetComponent<CompanionAI_CEM>().startingPosition = ally.transform.position;
+                    //     ally.GetComponent<CompanionAI_CEM>().targetPosition = ally.transform.position;
+                    // }
+                    // else if (ally.GetComponent<CompanionAI_neural>().enabled)
+                    // {
+                    //     ally.GetComponent<CompanionAI_neural>().startingPosition = ally.transform.position;
+                    //     ally.GetComponent<CompanionAI_neural>().targetPosition = ally.transform.position;
+                    // }
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
                 }
 
@@ -477,6 +493,7 @@ public class DungeonGenerator : MonoBehaviour
                         GenerateEnemies(generatedRooms[nextRoomPosition]);
                     }
                 }
+                //Pathfinding.Instance.InitGrid(nextRoomPositionV);
             }
         }
     }
