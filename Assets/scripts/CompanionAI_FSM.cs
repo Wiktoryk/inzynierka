@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -144,39 +145,42 @@ public class CompanionAI_FSM : MonoBehaviour
 
     void AttackEnemy()
     {
-        foreach (GameObject enemy in enemies)
+        if (enemies.Count == 0)
         {
-            if (Vector3.Distance(transform.position, enemy.transform.position) < attackRange)
-            {
-                enemy.GetComponent<EnemyAI>().TakeDamage(attackDamage);
-                movesLeft--;
-                return;
-            }
+            currentState = CompanionState.FollowPlayer;
+            return;
+        }
+
+        GameObject closestEnemy = enemies
+            .OrderBy(enemy => Vector3.Distance(transform.position, enemy.transform.position)).FirstOrDefault();
+        if (closestEnemy == null)
+        {
+            currentState = CompanionState.FollowPlayer;
+            return;
+        }
         
-            int result = Random.Range(0, 1);
+        float distanceToEnemy = Vector3.Distance(transform.position, closestEnemy.transform.position);
+        if (distanceToEnemy < attackRange)
+        {
+            closestEnemy.GetComponent<EnemyAI>().TakeDamage(attackDamage);
+            movesLeft--;
+            return;
+        }
+        if (distanceToEnemy < rangedAttackRange)
+        {
+            int result = Random.Range(0, 2);
             if (result == 1)
             {
-                if (Vector3.Distance(transform.position, enemy.transform.position) < rangedAttackRange)
-                {
-                    enemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
-                    movesLeft--;
-                    return;
-                }
-                targetPosition = enemy.transform.position;
-                startingPosition = transform.position;
+                closestEnemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
                 movesLeft--;
-                MoveTowardsTarget();
                 return;
 
             }
-            targetPosition = enemy.transform.position;
+            targetPosition = closestEnemy.transform.position;
             startingPosition = transform.position;
             movesLeft--;
             MoveTowardsTarget();
-            return;
-
         }
-        currentState = CompanionState.FollowPlayer;
     }
     
     void Heal()
