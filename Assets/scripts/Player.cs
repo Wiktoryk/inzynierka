@@ -53,6 +53,7 @@ public class Player : MonoBehaviour
                 }
                 else
                 {
+                    agent.RequestDecision();
                     HandleMovementInput();
                 }
             }

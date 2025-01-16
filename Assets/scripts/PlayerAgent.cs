@@ -50,29 +50,32 @@ public class PlayerAgent : Agent
     
     public override void OnActionReceived(ActionBuffers actions)
     {
-        int moveDirection = actions.DiscreteActions[0];
-        if (moveDirection == 0) HumanPlayer.SetTargetPosition(Vector3.up);
-        else if (moveDirection == 1) HumanPlayer.SetTargetPosition(Vector3.down);
-        else if (moveDirection == 2) HumanPlayer.SetTargetPosition(Vector3.left);
-        else if (moveDirection == 3) HumanPlayer.SetTargetPosition(Vector3.right);
+        if (HumanPlayer.useExternalInput)
+        {
+            int moveDirection = actions.DiscreteActions[0];
+            if (moveDirection == 0) HumanPlayer.SetTargetPosition(Vector3.up);
+            else if (moveDirection == 1) HumanPlayer.SetTargetPosition(Vector3.down);
+            else if (moveDirection == 2) HumanPlayer.SetTargetPosition(Vector3.left);
+            else if (moveDirection == 3) HumanPlayer.SetTargetPosition(Vector3.right);
 
-        int specialAction = actions.DiscreteActions[1]; 
-        if (specialAction == 0) 
-        {
-            GameObject.Find("CombatManager").GetComponent<Combat>().heal(HumanPlayer.gameObject);
-        }
-        else if (specialAction == 1) 
-        {
-            GameObject.Find("CombatManager").GetComponent<Combat>().heal(GameObject.Find("Ally"));
-        }
-        else if (specialAction == 2) 
-        {
-            var enemies = GameObject.FindGameObjectsWithTag("Enemy");
-            foreach (var enemy in enemies)
+            int specialAction = actions.DiscreteActions[1];
+            if (specialAction == 0)
             {
-                if (Vector3.Distance(HumanPlayer.transform.position, enemy.transform.position) < 2.0f)
+                GameObject.Find("CombatManager").GetComponent<Combat>().heal(HumanPlayer.gameObject);
+            }
+            else if (specialAction == 1)
+            {
+                GameObject.Find("CombatManager").GetComponent<Combat>().heal(GameObject.Find("Ally"));
+            }
+            else if (specialAction == 2)
+            {
+                var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+                foreach (var enemy in enemies)
                 {
-                    GameObject.Find("CombatManager").GetComponent<Combat>().PerformCombat(enemy);
+                    if (Vector3.Distance(HumanPlayer.transform.position, enemy.transform.position) < 2.0f)
+                    {
+                        GameObject.Find("CombatManager").GetComponent<Combat>().PerformCombat(enemy);
+                    }
                 }
             }
         }
@@ -93,6 +96,6 @@ public class PlayerAgent : Agent
     
     public override void OnEpisodeBegin()
     {
-        //reset
+        this.RequestDecision();
     }
 }
