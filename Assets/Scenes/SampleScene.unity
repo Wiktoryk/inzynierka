@@ -3448,6 +3448,7 @@ MonoBehaviour:
   moveSpeed: 15
   isTurnComplete: 0
   movesLeft: 2
+  previousMovesLeft: 2
   isTurn: 0
   health: 100
   maxHealth: 100
@@ -3517,6 +3518,9 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
+  decisionTimeLimit: 5
+  decisionTimer: 0
+  decisionMade: 0
 --- !u!114 &330656362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3559,7 +3563,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2902496c0120472b90269f94a0aec7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Record: 1
+  Record: 0
   NumStepsToRecord: 0
   DemonstrationName: test
   DemonstrationDirectory: 

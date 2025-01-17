@@ -50,7 +50,7 @@ public class Combat : MonoBehaviour
         {
             heal(player);
         }
-        if (Input.GetKeyDown(KeyCode.Y))
+        if (Input.GetKeyDown(KeyCode.Y) && ally != null)
         {
             heal(ally);
         }

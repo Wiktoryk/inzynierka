@@ -45,8 +45,7 @@ behaviors:
     behavioral_cloning: null
 env_settings:
   env_path: null
-  env_args:
-  - '''--timeout=600'''
+  env_args: null
   base_port: 5005
   num_envs: 1
   num_areas: 1
@@ -67,11 +66,11 @@ checkpoint_settings:
   run_id: test
   initialize_from: null
   load_model: false
-  resume: false
+  resume: true
   force: false
   train_model: false
   inference: false
   results_dir: results
 torch_settings:
   device: null
-debug: true
+debug: false

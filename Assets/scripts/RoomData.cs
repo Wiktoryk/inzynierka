@@ -13,14 +13,14 @@ public class RoomData : MonoBehaviour
     {
         Position = position;
         RoomObject = roomObject;
-        Transform grid = RoomObject.GetComponent<Grid>().transform;
-        foreach (Transform tile in grid)
-        {
-            if (tile.CompareTag("move"))
-            {
-                tile.gameObject.SetActive(false);
-            }
-        }
+        // Transform grid = RoomObject.GetComponent<Grid>().transform;
+        // foreach (Transform tile in grid)
+        // {
+        //     if (tile.CompareTag("move"))
+        //     {
+        //         tile.gameObject.SetActive(false);
+        //     }
+        // }
     }
     
     public bool IsSpawnPointOverWalkTile(Vector3 spawnPoint)

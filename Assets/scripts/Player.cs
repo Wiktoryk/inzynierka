@@ -15,6 +15,7 @@ public class Player : MonoBehaviour
     private bool isMoving = false;
     public bool isTurnComplete = false;
     public int movesLeft = 2;
+    public int previousMovesLeft = 2;
     public bool isTurn = false;
     public int health = 50;
     public int maxHealth = 100;
@@ -32,7 +33,7 @@ public class Player : MonoBehaviour
         agent = GetComponent<PlayerAgent>();
     }
 
-    void Update()
+    public void PerformActions()
     {
         if (isTurn)
         {
@@ -49,6 +50,15 @@ public class Player : MonoBehaviour
             {
                 if (useExternalInput)
                 {
+                    agent.decisionTimer += Time.deltaTime;
+                    if (agent.decisionTimer >= agent.decisionTimeLimit)
+                    {
+                        Debug.Log("Decision timed out");
+                        agent.AddReward(-0.5f);
+                        agent.decisionTimer = 0f;
+                        agent.EndEpisode();
+                        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    }
                     agent.RequestDecision();
                 }
                 else
@@ -91,22 +101,32 @@ public class Player : MonoBehaviour
         previousPosition = transform.position;
         targetPosition = transform.position + direction * moveDistance;
         isMoving = true;
+        previousMovesLeft = movesLeft;
         movesLeft--;
     }
     
     void MoveToTarget()
     {
-        if (isMoving)
+        // if (isMoving)
+        // {
+        //     transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+        //
+        //     if (Vector3.Distance(transform.position, targetPosition) < 0.01f)
+        //     {
+        //         transform.position = targetPosition;
+        //         isMoving = false;
+        //         transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
+        //     }
+        // }
+        isMoving = true;
+        transform.position = targetPosition;
+        transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
+        if (!checkValidPosition())
         {
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
-
-            if (Vector3.Distance(transform.position, targetPosition) < 0.01f)
-            {
-                transform.position = targetPosition;
-                isMoving = false;
-                transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
-            }
+            movesLeft = previousMovesLeft;
+            transform.position = previousPosition;
         }
+        isMoving = false;
     }
 
     public void MoveToRoom(Vector3 roomPosition)
@@ -122,19 +142,25 @@ public class Player : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (isTurn)
+        // if (isTurn)
+        // {
+        //     if (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Ally"))
+        //     {
+        //         transform.position = previousPosition;
+        //         targetPosition = previousPosition;
+        //         isMoving = false;
+        //         movesLeft++;
+        //     }
+        // }
+        if (collision.CompareTag("move"))
         {
-            if (collision.CompareTag("Wall") || collision.CompareTag("Enemy") || collision.CompareTag("Ally"))
+            bool open = GameObject.Find("DungeonGenerator").GetComponent<DungeonGenerator>().AttemptRoomTransition();
+            if (!open)
             {
                 transform.position = previousPosition;
                 targetPosition = previousPosition;
-                isMoving = false;
-                movesLeft++;
+                movesLeft = previousMovesLeft;
             }
-        }
-        if (collision.CompareTag("move"))
-        {
-            GameObject.Find("DungeonGenerator").GetComponent<DungeonGenerator>().AttemptRoomTransition();
         }
     }
     
@@ -163,5 +189,20 @@ public class Player : MonoBehaviour
         isTurn = false;
         movesLeft = 2;
         turnCounter++;
+        agent.OnActionTaken();
+    }
+    
+    bool checkValidPosition()
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.1f);
+        foreach (Collider2D collider in colliders)
+        {
+            if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Ally") || collider.gameObject.CompareTag("Enemy")))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

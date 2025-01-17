@@ -413,7 +413,7 @@ public class DungeonGenerator : MonoBehaviour
         }
     }
     
-    public void AttemptRoomTransition()
+    public bool AttemptRoomTransition()
     {
         if (generatedRooms.TryGetValue(CurrentRoomPosition, out RoomData roomData) && roomData.IsCompleted)
         {
@@ -518,7 +518,11 @@ public class DungeonGenerator : MonoBehaviour
                 }
                 //Pathfinding.Instance.InitGrid(nextRoomPositionV);
             }
+
+            return true;
         }
+
+        return false;
     }
     
     void ActivateExits(RoomData room)

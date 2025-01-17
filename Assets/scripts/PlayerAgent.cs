@@ -9,10 +9,15 @@ using UnityEngine;
 public class PlayerAgent : Agent
 {
     private Player HumanPlayer;
+    public float decisionTimeLimit = 5f;
+    public float decisionTimer = 0f;
+    public bool decisionMade = false;
 
     public override void Initialize()
     {
         HumanPlayer = GetComponent<Player>();
+        decisionTimer = 0f;
+        decisionMade = false;
     }
     
     public override void CollectObservations(VectorSensor sensor)
@@ -98,4 +103,11 @@ public class PlayerAgent : Agent
     {
         this.RequestDecision();
     }
+    
+    public void OnActionTaken()
+    {
+        decisionMade = true;
+        decisionTimer = 0f;
+        decisionMade = false;
+    } 
 }
