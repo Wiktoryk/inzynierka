@@ -18,15 +18,24 @@
                 "auxillary_file_paths": [
                     "results\\test\\My Behavior\\My Behavior-24339.pt"
                 ]
+            },
+            {
+                "steps": 73081,
+                "file_path": "results\\test\\My Behavior\\My Behavior-73081.onnx",
+                "reward": -0.6875,
+                "creation_time": 1737190028.4670053,
+                "auxillary_file_paths": [
+                    "results\\test\\My Behavior\\My Behavior-73081.pt"
+                ]
             }
         ],
         "final_checkpoint": {
-            "steps": 24339,
+            "steps": 73081,
             "file_path": "results\\test\\My Behavior.onnx",
-            "reward": -0.75,
-            "creation_time": 1737146350.9988124,
+            "reward": -0.6875,
+            "creation_time": 1737190028.4670053,
             "auxillary_file_paths": [
-                "results\\test\\My Behavior\\My Behavior-24339.pt"
+                "results\\test\\My Behavior\\My Behavior-73081.pt"
             ]
         }
     },

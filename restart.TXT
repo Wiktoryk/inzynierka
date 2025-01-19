@@ -1,0 +1,6 @@
+:restart
+mlagents-learn configuration.yaml --run-id=test2 --resume
+if %ERRORLEVEL% neq 0 (
+    echo "Training crashed. Restarting..."
+    goto restart
+)

@@ -11,13 +11,13 @@ public class PlayerAgent : Agent
     private Player HumanPlayer;
     public float decisionTimeLimit = 5f;
     public float decisionTimer = 0f;
-    public bool decisionMade = false;
+    public float progressTimeLimit = 10f;
+    public float progressTimer = 0f;
 
     public override void Initialize()
     {
         HumanPlayer = GetComponent<Player>();
         decisionTimer = 0f;
-        decisionMade = false;
     }
     
     public override void CollectObservations(VectorSensor sensor)
@@ -30,9 +30,17 @@ public class PlayerAgent : Agent
         sensor.AddObservation(HumanPlayer.isCombat);
         sensor.AddObservation(HumanPlayer.useExternalInput);
         sensor.AddObservation(HumanPlayer.movesLeft / 2f);
-        sensor.AddObservation(GameObject.Find("Ally").transform.position / 60f);
-        var allyScript = GameObject.Find("Ally").GetComponent<CompanionAI_FSM>();
-        sensor.AddObservation(allyScript.health/ (float)allyScript.maxHealth);
+        if (GameObject.Find("Ally") != null)
+        {
+            sensor.AddObservation(GameObject.Find("Ally").transform.position / 60f);
+            var allyScript = GameObject.Find("Ally").GetComponent<CompanionAI_FSM>();
+            sensor.AddObservation(allyScript.health / (float)allyScript.maxHealth);
+        }
+        else
+        {
+            sensor.AddObservation(Vector3.zero);
+            sensor.AddObservation(0);
+        }
         var enemies = GameObject.FindGameObjectsWithTag("Enemy").OrderBy(e => Vector3.Distance(e.transform.position, transform.position)).ToList();
         foreach (var enemy in enemies)
         {
@@ -106,8 +114,6 @@ public class PlayerAgent : Agent
     
     public void OnActionTaken()
     {
-        decisionMade = true;
         decisionTimer = 0f;
-        decisionMade = false;
     } 
 }

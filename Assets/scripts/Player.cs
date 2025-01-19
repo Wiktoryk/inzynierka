@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    private PlayerAgent agent;
+    public PlayerAgent agent;
     private Vector3 targetPosition;
     public Vector3 previousPosition;
     public Vector2 externalInput;
@@ -58,6 +58,19 @@ public class Player : MonoBehaviour
                         agent.decisionTimer = 0f;
                         agent.EndEpisode();
                         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    }
+
+                    if (!isCombat)
+                    {
+                        agent.progressTimer += Time.deltaTime;
+                        if (agent.progressTimer >= agent.progressTimeLimit)
+                        {
+                            Debug.Log("Progress timed out");
+                            agent.AddReward(-0.5f);
+                            agent.progressTimer = 0f;
+                            agent.EndEpisode();
+                            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                        }
                     }
                     agent.RequestDecision();
                 }
@@ -138,6 +151,7 @@ public class Player : MonoBehaviour
         }
         transform.position = roomPosition;
         transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
+        agent.progressTimer = 0f;
     }
 
     void OnTriggerEnter2D(Collider2D collision)

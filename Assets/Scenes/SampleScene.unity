@@ -3456,7 +3456,7 @@ MonoBehaviour:
   healAmount: 10
   turnCounter: 0
   isCombat: 1
-  useExternalInput: 0
+  useExternalInput: 1
 --- !u!61 &330656360
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -3520,7 +3520,8 @@ MonoBehaviour:
   MaxStep: 0
   decisionTimeLimit: 5
   decisionTimer: 0
-  decisionMade: 0
+  progressTimeLimit: 10
+  progressTimer: 0
 --- !u!114 &330656362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3534,7 +3535,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 30
+    VectorObservationSize: 29
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0

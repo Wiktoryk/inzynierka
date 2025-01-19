@@ -400,7 +400,7 @@ public class DungeonGenerator : MonoBehaviour
                     Player playerScript = player.GetComponent<Player>();
                     float reward = 0;
                     reward += (playerScript.health / (float)playerScript.maxHealth) * 0.7f;
-                    if (ally.GetComponent<CompanionAI_FSM>().health > 0)
+                    if (ally != null)
                     {
                         reward += 0.3f;
                     }
@@ -438,7 +438,19 @@ public class DungeonGenerator : MonoBehaviour
             Vector2Int nextRoomPosition = GetNextRoomPosition(CurrentRoomPosition, exitDirection);
             if (generatedRooms.ContainsKey(nextRoomPosition))
             {
-                //roomData.RoomObject.GetComponent<Grid>().enabled = false;
+                Vector2Int endRoomPosition = generatedRooms.FirstOrDefault(room => room.Value.RoomObject.name.Contains("end")).Key;
+                int manhattanDistance = Math.Abs(nextRoomPosition.x - endRoomPosition.x) + Math.Abs(nextRoomPosition.y - endRoomPosition.y);
+                int manhattanDistanceCurrent = Math.Abs(CurrentRoomPosition.x - endRoomPosition.x) + Math.Abs(CurrentRoomPosition.y - endRoomPosition.y);
+                if (manhattanDistance < manhattanDistanceCurrent && !generatedRooms[nextRoomPosition].IsCompleted && manhattanDistance > 0)
+                {
+                    PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                    playerAgent.AddReward(0.1f);
+                }
+                else if (manhattanDistance == 1 && GetAllExits(nextRoomPosition).Contains(Vector2Int.right) && !generatedRooms[nextRoomPosition].IsCompleted)
+                {
+                    PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                    playerAgent.AddReward(0.1f);
+                }
                 Vector3 RoomDistance = generatedRooms[CurrentRoomPosition].RoomObject.transform.position - generatedRooms[nextRoomPosition].RoomObject.transform.position;
                 CurrentRoomPosition = nextRoomPosition;
                 Vector3 nextRoomPositionV = generatedRooms[nextRoomPosition].RoomObject.transform.position;
