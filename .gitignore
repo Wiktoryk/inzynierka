@@ -80,3 +80,5 @@ crashlytics-build.properties
 /player-learn
 /results/player/My Behavior
 /results/player/run_logs
+/results/playeragent/My Behavior
+/results/playeragent/run_logs

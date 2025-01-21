@@ -22,6 +22,7 @@ public class DungeonGenerator : MonoBehaviour
     public GameObject endRoomPrefab;
     public GameObject[] roomPrefabs;
     public GameObject[] noExitsPrefabs;
+    public float totalReward = 0;
     public int minRoomsBetweenStartAndEnd = 3;
     public bool generationDone = false;
     
@@ -441,16 +442,24 @@ public class DungeonGenerator : MonoBehaviour
                 Vector2Int endRoomPosition = generatedRooms.FirstOrDefault(room => room.Value.RoomObject.name.Contains("end")).Key;
                 int manhattanDistance = Math.Abs(nextRoomPosition.x - endRoomPosition.x) + Math.Abs(nextRoomPosition.y - endRoomPosition.y);
                 int manhattanDistanceCurrent = Math.Abs(CurrentRoomPosition.x - endRoomPosition.x) + Math.Abs(CurrentRoomPosition.y - endRoomPosition.y);
-                if (manhattanDistance < manhattanDistanceCurrent && !generatedRooms[nextRoomPosition].IsCompleted && manhattanDistance > 0)
+                if (totalReward < 0.5f)
                 {
-                    PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
-                    playerAgent.AddReward(0.1f);
+                    if (manhattanDistance < manhattanDistanceCurrent && !generatedRooms[nextRoomPosition].IsCompleted &&
+                        manhattanDistance > 0)
+                    {
+                        PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                        playerAgent.AddReward(0.1f);
+                        totalReward += 0.1f;
+                    }
+                    else if (manhattanDistance == 1 && GetAllExits(nextRoomPosition).Contains(Vector2Int.right) &&
+                             !generatedRooms[nextRoomPosition].IsCompleted)
+                    {
+                        PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                        playerAgent.AddReward(0.1f);
+                        totalReward += 0.1f;
+                    }
                 }
-                else if (manhattanDistance == 1 && GetAllExits(nextRoomPosition).Contains(Vector2Int.right) && !generatedRooms[nextRoomPosition].IsCompleted)
-                {
-                    PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
-                    playerAgent.AddReward(0.1f);
-                }
+
                 Vector3 RoomDistance = generatedRooms[CurrentRoomPosition].RoomObject.transform.position - generatedRooms[nextRoomPosition].RoomObject.transform.position;
                 CurrentRoomPosition = nextRoomPosition;
                 Vector3 nextRoomPositionV = generatedRooms[nextRoomPosition].RoomObject.transform.position;

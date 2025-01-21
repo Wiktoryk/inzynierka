@@ -3295,6 +3295,7 @@ MonoBehaviour:
   - {fileID: 80930041}
   - {fileID: 12370331}
   - {fileID: 620082339}
+  totalReward: 0
   minRoomsBetweenStartAndEnd: 3
   generationDone: 0
 --- !u!4 &329930210
@@ -3442,6 +3443,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24cd7f5e5a81b3a439cb7cd4e47ba22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  agent: {fileID: 0}
   previousPosition: {x: 0, y: 0, z: 0}
   externalInput: {x: 0, y: 0}
   moveDistance: 0.64
@@ -3520,7 +3522,7 @@ MonoBehaviour:
   MaxStep: 0
   decisionTimeLimit: 5
   decisionTimer: 0
-  progressTimeLimit: 10
+  progressTimeLimit: 25
   progressTimer: 0
 --- !u!114 &330656362
 MonoBehaviour:
@@ -3559,7 +3561,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330656355}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f2902496c0120472b90269f94a0aec7e, type: 3}
   m_Name: 

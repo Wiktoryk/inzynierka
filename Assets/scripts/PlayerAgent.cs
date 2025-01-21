@@ -11,7 +11,7 @@ public class PlayerAgent : Agent
     private Player HumanPlayer;
     public float decisionTimeLimit = 5f;
     public float decisionTimer = 0f;
-    public float progressTimeLimit = 10f;
+    public float progressTimeLimit = 25f;
     public float progressTimer = 0f;
 
     public override void Initialize()

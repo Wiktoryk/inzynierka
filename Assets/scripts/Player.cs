@@ -54,7 +54,7 @@ public class Player : MonoBehaviour
                     if (agent.decisionTimer >= agent.decisionTimeLimit)
                     {
                         Debug.Log("Decision timed out");
-                        agent.AddReward(-0.5f);
+                        agent.AddReward(-1f);
                         agent.decisionTimer = 0f;
                         agent.EndEpisode();
                         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -183,7 +183,7 @@ public class Player : MonoBehaviour
         health -= damage;
         if (health <= 0)
         {
-            agent.SetReward(-1f);
+            agent.AddReward(-0.5f);
             agent.EndEpisode();
             //StartCoroutine(RestartAfterDelay());
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);

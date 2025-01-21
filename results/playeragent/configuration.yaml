@@ -49,7 +49,7 @@ behaviors:
         encoding_size: null
         use_actions: false
         use_vail: false
-        demo_path: Assets/Demonstrations/test.demo
+        demo_path: Assets/Demonstrations/demos
     init_path: null
     keep_checkpoints: 5
     checkpoint_interval: 50000
@@ -79,7 +79,7 @@ engine_settings:
   no_graphics: false
 environment_parameters: null
 checkpoint_settings:
-  run_id: player
+  run_id: playeragent
   initialize_from: null
   load_model: false
   resume: true
