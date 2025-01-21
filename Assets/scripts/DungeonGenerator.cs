@@ -501,11 +501,11 @@ public class DungeonGenerator : MonoBehaviour
                         ally.GetComponent<CompanionAI_FSM>().startingPosition = ally.transform.position;
                         ally.GetComponent<CompanionAI_FSM>().targetPosition = ally.transform.position;
                     }
-                    // else if (ally.GetComponent<CompanionAI_CEM>().enabled)
-                    // {
-                    //     ally.GetComponent<CompanionAI_CEM>().startingPosition = ally.transform.position;
-                    //     ally.GetComponent<CompanionAI_CEM>().targetPosition = ally.transform.position;
-                    // }
+                    else if (ally.GetComponent<CompanionAI_CEM>().enabled)
+                    {
+                        ally.GetComponent<CompanionAI_CEM>().startingPosition = ally.transform.position;
+                        ally.GetComponent<CompanionAI_CEM>().targetPosition = ally.transform.position;
+                    }
                     // else if (ally.GetComponent<CompanionAI_neural>().enabled)
                     // {
                     //     ally.GetComponent<CompanionAI_neural>().startingPosition = ally.transform.position;

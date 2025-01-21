@@ -78,7 +78,11 @@ public class PlayerAgent : Agent
             }
             else if (specialAction == 1)
             {
-                GameObject.Find("CombatManager").GetComponent<Combat>().heal(GameObject.Find("Ally"));
+                var ally = GameObject.Find("Ally");
+                if (ally != null)
+                {
+                    GameObject.Find("CombatManager").GetComponent<Combat>().heal(ally);
+                }
             }
             else if (specialAction == 2)
             {
@@ -88,6 +92,7 @@ public class PlayerAgent : Agent
                     if (Vector3.Distance(HumanPlayer.transform.position, enemy.transform.position) < 2.0f)
                     {
                         GameObject.Find("CombatManager").GetComponent<Combat>().PerformCombat(enemy);
+                        break;
                     }
                 }
             }

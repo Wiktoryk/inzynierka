@@ -21,8 +21,9 @@ public struct originalState
     public int playerHealth;
     public int enemyHealth;
     public int attacked;
+    public int healCount;
     
-    public originalState(Vector3 position, int movesLeft, int health, int playerHealth, List<GameObject> enemyList)
+    public originalState(Vector3 position, int movesLeft, int health, int playerHealth, List<GameObject> enemyList, int healCount)
     {
         this.position = position;
         this.movesLeft = movesLeft;
@@ -31,6 +32,7 @@ public struct originalState
         this.enemyList = enemyList;
         this.enemyHealth = 0;
         this.attacked = -1;
+        this.healCount = healCount;
     }
     
     public void SetEnemyHealth(int health, int index)
@@ -46,8 +48,8 @@ public class CompanionAI_CEM : MonoBehaviour
     private List<Vector3> failedMoves = new List<Vector3>();
     public Transform player;
     public Transform HealTarget;
-    private Vector3 targetPosition;
-    private Vector3 startingPosition;
+    public Vector3 targetPosition;
+    public Vector3 startingPosition;
     public float moveSpeed = 2f;
     public float followDistance = 1.5f;
     public float attackRange = 1.0f;
@@ -180,7 +182,7 @@ public class CompanionAI_CEM : MonoBehaviour
     
     originalState SimulateAction(CompanionCEMState action)
     {
-        originalState originalState = new originalState(transform.position, movesLeft, health, player.GetComponent<Player>().health, new List<GameObject>(enemies));
+        originalState originalState = new originalState(transform.position, movesLeft, health, player.GetComponent<Player>().health, new List<GameObject>(enemies), healCount);
 
         switch (action)
         {
@@ -222,6 +224,7 @@ public class CompanionAI_CEM : MonoBehaviour
         {
             enemies[originalstate.attacked].GetComponent<EnemyAI>().health = originalstate.enemyHealth;
         }
+        healCount = originalstate.healCount;
     }
     
     float CalculateIdleEmpowerment()
@@ -289,7 +292,12 @@ public class CompanionAI_CEM : MonoBehaviour
             return 0;
         }
 
-        if (health < 30)
+        if (!IsTileWalkableEvade(transform.position + calculateEvadeDirection()))
+        {
+            return 0;
+        }
+
+        if (health < 30 && health < player.GetComponent<Player>().health)
         {
             empowerment += (30 - health) * 0.15f;
             foreach (var enemy in enemies)
@@ -447,17 +455,7 @@ public class CompanionAI_CEM : MonoBehaviour
 
     void Evade()
     {
-        Vector3 evadeDirection = Vector3.zero;
-        foreach (GameObject enemy in enemies)
-        {
-            float distance = Vector3.Distance(transform.position, enemy.transform.position);
-
-            if (distance < 3f)
-            {
-                Vector3 directionAway = transform.position - enemy.transform.position;
-                evadeDirection += directionAway.normalized;
-            }
-        }
+        Vector3 evadeDirection = calculateEvadeDirection();
         if (evadeDirection != Vector3.zero)
         {
             evadeDirection.Normalize();
@@ -485,11 +483,28 @@ public class CompanionAI_CEM : MonoBehaviour
         }
         return isENearby;
     }
+    
+    Vector3 calculateEvadeDirection()
+    {
+        Vector3 evadeDirection = Vector3.zero;
+        foreach (GameObject enemy in enemies)
+        {
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+
+            if (distance < 3f)
+            {
+                Vector3 directionAway = transform.position - enemy.transform.position;
+                evadeDirection += directionAway.normalized;
+            }
+        }
+        return evadeDirection;
+    }
     void EndTurn()
     {
         isTurnComplete = true;
         isTurn = false;
         isBusy = false;
+        failedMoves.Clear();
         movesLeft = 2;
         turnCounter++;
     }
@@ -502,6 +517,7 @@ public class CompanionAI_CEM : MonoBehaviour
             Vector3 trueTargetPositionV = trueTargetPosition.Value;
             trueTargetPositionV += startingPosition;
             transform.position = trueTargetPositionV;
+            transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
             if (!checkValidPosition())
             {
                 movesLeft++;
@@ -511,7 +527,6 @@ public class CompanionAI_CEM : MonoBehaviour
             else
             {
                 failedMoves.Clear();
-                transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
             }
         }
     }
@@ -551,6 +566,7 @@ public class CompanionAI_CEM : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     
     bool checkValidPosition()
@@ -587,6 +603,20 @@ public class CompanionAI_CEM : MonoBehaviour
         foreach (Collider2D collider in colliders)
         {
             if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Enemy")))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
+    bool IsTileWalkableEvade(Vector3 position)
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(position, 0.1f);
+        foreach (Collider2D collider in colliders)
+        {
+            if (collider != null && (collider.gameObject.CompareTag("Wall") || collider.gameObject.CompareTag("Enemy") || collider.gameObject.CompareTag("Player")))
             {
                 return false;
             }
