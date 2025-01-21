@@ -22,19 +22,31 @@ public class DungeonGenerator : MonoBehaviour
     public GameObject endRoomPrefab;
     public GameObject[] roomPrefabs;
     public GameObject[] noExitsPrefabs;
+    public float totalReward = 0;
     public int minRoomsBetweenStartAndEnd = 3;
+    public bool generationDone = false;
     
     void Start()
     {
-        try
+        while (!generationDone)
         {
-            GenerateDungeon();
-            GameObject.Find("/TurnManager").GetComponent<TurnManager>().StartTurns();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e.Message);
-            SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+            try
+            {
+                GenerateDungeon();
+                generationDone = true;
+                GameObject.Find("/TurnManager").GetComponent<TurnManager>().StartTurns();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.Message);
+                //SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+                //Destroy every room in generatedRooms and clear it
+                foreach (var room in generatedRooms)
+                {
+                    Destroy(room.Value.RoomObject);
+                }
+                generatedRooms.Clear();
+            }
         }
     }
 
@@ -368,7 +380,8 @@ public class DungeonGenerator : MonoBehaviour
             if (roomData.Enemies.ToArray().Length == 0)
             {
                 roomData.IsCompleted = true;
-                GameObject.FindGameObjectWithTag("Player").GetComponent<Player>().isCombat = false;
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                player.GetComponent<Player>().isCombat = false;
                 GameObject ally = GameObject.FindGameObjectWithTag("Ally");
                 if (ally != null)
                 {
@@ -384,13 +397,24 @@ public class DungeonGenerator : MonoBehaviour
                 ActivateExits(roomData);
                 if (roomData.RoomObject.name.Contains("end"))
                 {
-                    SceneManager.LoadScene("Scenes/WinScene");
+                    PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                    Player playerScript = player.GetComponent<Player>();
+                    float reward = 0;
+                    reward += (playerScript.health / (float)playerScript.maxHealth) * 0.7f;
+                    if (ally != null)
+                    {
+                        reward += 0.3f;
+                    }
+                    playerAgent.SetReward(reward);
+                    playerAgent.EndEpisode();
+                    //SceneManager.LoadScene("Scenes/WinScene");
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 }
             }
         }
     }
     
-    public void AttemptRoomTransition()
+    public bool AttemptRoomTransition()
     {
         if (generatedRooms.TryGetValue(CurrentRoomPosition, out RoomData roomData) && roomData.IsCompleted)
         {
@@ -415,7 +439,27 @@ public class DungeonGenerator : MonoBehaviour
             Vector2Int nextRoomPosition = GetNextRoomPosition(CurrentRoomPosition, exitDirection);
             if (generatedRooms.ContainsKey(nextRoomPosition))
             {
-                //roomData.RoomObject.GetComponent<Grid>().enabled = false;
+                Vector2Int endRoomPosition = generatedRooms.FirstOrDefault(room => room.Value.RoomObject.name.Contains("end")).Key;
+                int manhattanDistance = Math.Abs(nextRoomPosition.x - endRoomPosition.x) + Math.Abs(nextRoomPosition.y - endRoomPosition.y);
+                int manhattanDistanceCurrent = Math.Abs(CurrentRoomPosition.x - endRoomPosition.x) + Math.Abs(CurrentRoomPosition.y - endRoomPosition.y);
+                if (totalReward < 0.5f)
+                {
+                    if (manhattanDistance < manhattanDistanceCurrent && !generatedRooms[nextRoomPosition].IsCompleted &&
+                        manhattanDistance > 0)
+                    {
+                        PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                        playerAgent.AddReward(0.1f);
+                        totalReward += 0.1f;
+                    }
+                    else if (manhattanDistance == 1 && GetAllExits(nextRoomPosition).Contains(Vector2Int.right) &&
+                             !generatedRooms[nextRoomPosition].IsCompleted)
+                    {
+                        PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                        playerAgent.AddReward(0.1f);
+                        totalReward += 0.1f;
+                    }
+                }
+
                 Vector3 RoomDistance = generatedRooms[CurrentRoomPosition].RoomObject.transform.position - generatedRooms[nextRoomPosition].RoomObject.transform.position;
                 CurrentRoomPosition = nextRoomPosition;
                 Vector3 nextRoomPositionV = generatedRooms[nextRoomPosition].RoomObject.transform.position;
@@ -495,7 +539,11 @@ public class DungeonGenerator : MonoBehaviour
                 }
                 //Pathfinding.Instance.InitGrid(nextRoomPositionV);
             }
+
+            return true;
         }
+
+        return false;
     }
     
     void ActivateExits(RoomData room)

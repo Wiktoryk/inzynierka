@@ -71,7 +71,12 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 /.idea
-/venv
+
+/venv/
+/Assets/Demonstrations
+/results/test/My Behavior
+/results/test2/run_logs
+/results/test2/My Behavior
 /player-learn
 /results/player/My Behavior
 /results/player/run_logs

@@ -53,6 +53,7 @@ public class TurnManager : MonoBehaviour
     void HandlePlayerTurn()
     {
         player.GetComponent<Player>().isTurn = true;
+        player.GetComponent<Player>().PerformActions();
         if (player.GetComponent<Player>().isTurnComplete)
         {
             player.GetComponent<Player>().isTurnComplete = false;

@@ -3295,7 +3295,9 @@ MonoBehaviour:
   - {fileID: 80930041}
   - {fileID: 12370331}
   - {fileID: 620082339}
+  totalReward: 0
   minRoomsBetweenStartAndEnd: 3
+  generationDone: 0
 --- !u!4 &329930210
 Transform:
   m_ObjectHideFlags: 0
@@ -3324,6 +3326,9 @@ GameObject:
   - component: {fileID: 330656356}
   - component: {fileID: 330656360}
   - component: {fileID: 330656359}
+  - component: {fileID: 330656362}
+  - component: {fileID: 330656361}
+  - component: {fileID: 330656363}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -3438,11 +3443,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24cd7f5e5a81b3a439cb7cd4e47ba22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  agent: {fileID: 0}
   previousPosition: {x: 0, y: 0, z: 0}
+  externalInput: {x: 0, y: 0}
   moveDistance: 0.64
   moveSpeed: 15
   isTurnComplete: 0
   movesLeft: 2
+  previousMovesLeft: 2
   isTurn: 0
   health: 100
   maxHealth: 100
@@ -3450,6 +3458,7 @@ MonoBehaviour:
   healAmount: 10
   turnCounter: 0
   isCombat: 1
+  useExternalInput: 1
 --- !u!61 &330656360
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -3495,6 +3504,72 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5781102, y: 0.5793242}
   m_EdgeRadius: 0
+--- !u!114 &330656361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330656355}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfebde8b4597bea49a16d4802bd1ca05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 0
+  decisionTimeLimit: 5
+  decisionTimer: 0
+  progressTimeLimit: 25
+  progressTimer: 0
+--- !u!114 &330656362
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330656355}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d1c4e0b1822b495aa52bc52839ecb30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_BrainParameters:
+    VectorObservationSize: 29
+    NumStackedVectorObservations: 1
+    m_ActionSpec:
+      m_NumContinuousActions: 0
+      BranchSizes: 0400000003000000
+    VectorActionSize: 0400000003000000
+    VectorActionDescriptions: []
+    VectorActionSpaceType: 0
+    hasUpgradedBrainParametersWithActionSpec: 1
+  m_Model: {fileID: 0}
+  m_InferenceDevice: 0
+  m_BehaviorType: 0
+  m_BehaviorName: My Behavior
+  TeamId: 0
+  m_UseChildSensors: 1
+  m_UseChildActuators: 1
+  m_ObservableAttributeHandling: 0
+--- !u!114 &330656363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330656355}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2902496c0120472b90269f94a0aec7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Record: 0
+  NumStepsToRecord: 0
+  DemonstrationName: test
+  DemonstrationDirectory: 
 --- !u!1 &345409677
 GameObject:
   m_ObjectHideFlags: 0
@@ -6786,6 +6861,8 @@ MonoBehaviour:
   enemies: []
   player: {fileID: 330656358}
   HealTarget: {fileID: 0}
+  startingPosition: {x: 0, y: 0, z: 0}
+  targetPosition: {x: 0, y: 0, z: 0}
   moveSpeed: 15
   moveDistance: 0.64
   attackRange: 1
