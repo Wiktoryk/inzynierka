@@ -197,7 +197,8 @@ public class Player : MonoBehaviour
             //         ally.GetComponent<CompanionAgent>().EndEpisode();
             //     }
             // }
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            GameObject.Find("Logger").GetComponent<Logger>().SaveMetricsToCSV("decisionMetrics.csv");
+            SceneManager.LoadScene("Scenes/Start");
         }
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }

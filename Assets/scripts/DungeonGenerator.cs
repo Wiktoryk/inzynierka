@@ -418,6 +418,7 @@ public class DungeonGenerator : MonoBehaviour
                     // }
                     // playerAgent.SetReward(reward);
                     // playerAgent.EndEpisode();
+                    GameObject.Find("Logger").GetComponent<Logger>().SaveMetricsToCSV("decisionMetrics.csv");
                     SceneManager.LoadScene("Scenes/WinScene");
                     // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 }

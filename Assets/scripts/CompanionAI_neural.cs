@@ -1,15 +1,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 
 public class CompanionAI_neural : MonoBehaviour
 {
     public CompanionAgent agent;
     public Transform player;
     private List<Vector3> failedMoves = new List<Vector3>();
+    private Stopwatch stopwatch = new Stopwatch();
+    private Logger logger;
     public Vector3 startingPosition;
     public Vector3 targetPosition;
     public float moveDistance = 0.64f;
@@ -34,6 +38,8 @@ public class CompanionAI_neural : MonoBehaviour
     {
         agent = GetComponent<CompanionAgent>();
         startingPosition= transform.position;
+        logger = GameObject.Find("Logger").GetComponent<Logger>();
+        stopwatch.Start();
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     public void PerformActions()
@@ -59,11 +65,16 @@ public class CompanionAI_neural : MonoBehaviour
                 // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 CompleteTurn();
             }
+            stopwatch.Restart();
             agent.RequestDecision();
             isBusy = false;
 
             if (movesLeft <= 0)
             {
+                stopwatch.Stop();
+                long elapsedTicks = stopwatch.Elapsed.Ticks;
+                double elapsedNanoseconds = (elapsedTicks / (double)Stopwatch.Frequency) * 1e9;
+                logger.LogDecisionTime(elapsedNanoseconds);
                 CompleteTurn();
             }
         }

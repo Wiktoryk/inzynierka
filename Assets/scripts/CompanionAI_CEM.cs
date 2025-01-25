@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public enum CompanionCEMState : byte
 {
@@ -48,6 +50,8 @@ public class CompanionAI_CEM : MonoBehaviour
     private List<Vector3> failedMoves = new List<Vector3>();
     public Transform player;
     public Transform HealTarget;
+    private Stopwatch stopwatch = new Stopwatch();
+    private Logger logger;
     public Vector3 targetPosition;
     public Vector3 startingPosition;
     public float moveSpeed = 2f;
@@ -75,6 +79,8 @@ public class CompanionAI_CEM : MonoBehaviour
         startingPosition= transform.position;
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
         HealTarget = player;
+        logger = GameObject.Find("Logger").GetComponent<Logger>();
+        stopwatch.Start();
     }
 
     
@@ -92,19 +98,21 @@ public class CompanionAI_CEM : MonoBehaviour
             }
 
             isBusy = true;
-            String log = "";
+            stopwatch.Restart();
             while (movesLeft > 0)
             {
                 UpdateEnemiesList();
                 var bestSequence = ChooseBestTwoActionSequence();
-                log += $"{bestSequence.Item1}, {bestSequence.Item2}";
                 PerformAction(bestSequence.Item1);
                 if (movesLeft > 0)
                 {
                     PerformAction(bestSequence.Item2);
                 }
             }
-            Debug.Log(log);
+            stopwatch.Stop();
+            long elapsedTicks = stopwatch.Elapsed.Ticks;
+            double elapsedNanoseconds = (elapsedTicks / (double)Stopwatch.Frequency) * 1e9;
+            logger.LogDecisionTime(elapsedNanoseconds);
             EndTurn();
         }
     }

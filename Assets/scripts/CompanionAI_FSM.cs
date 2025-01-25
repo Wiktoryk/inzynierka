@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Unity.VisualScripting;
@@ -22,6 +23,8 @@ public class CompanionAI_FSM : MonoBehaviour
     public Transform player;
     public Transform HealTarget;
     private List<Vector3> failedMoves = new List<Vector3>();
+    private Stopwatch stopwatch = new Stopwatch();
+    private Logger logger;
     public Vector3 startingPosition;
     public Vector3 targetPosition;
     public float moveSpeed = 15f;
@@ -47,6 +50,8 @@ public class CompanionAI_FSM : MonoBehaviour
         currentState = CompanionState.Idle;
         startingPosition= transform.position;
         HealTarget = player;
+        logger = GameObject.Find("Logger").GetComponent<Logger>();
+        stopwatch.Start();
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }
     public void PerformActions()
@@ -62,9 +67,7 @@ public class CompanionAI_FSM : MonoBehaviour
                     turnCounter = 0;
                 }
             }
-
-            String states = "";
-            String moves = "";
+            stopwatch.Restart();
             while (movesLeft > 0)
             {
                 enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
@@ -94,7 +97,6 @@ public class CompanionAI_FSM : MonoBehaviour
                 switch (currentState)
                 {
                     case CompanionState.Idle:
-                        states += "Idle;";
                         if (Vector3.Distance(transform.position, player.position) < 1)
                         {
                             movesLeft = 0;
@@ -103,26 +105,23 @@ public class CompanionAI_FSM : MonoBehaviour
                         currentState = CompanionState.FollowPlayer;
                         break;
                     case CompanionState.FollowPlayer:
-                        states += "FollowPlayer;";
                         FollowPlayer();
                         break;
                     case CompanionState.Attack:
-                        states += "Attack;";
                         AttackEnemy();
                         break;
                     case CompanionState.Heal:
-                        states += "Heal;";
                         Heal();
                         break;
                     case CompanionState.Evade:
-                        states += "Evade;";
                         EvadeEnemies();
                         break;
                 }
-                moves += transform.position + ";";
             }
-            Debug.Log(states);
-            Debug.Log(moves);
+            stopwatch.Stop();
+            long elapsedTicks = stopwatch.Elapsed.Ticks;
+            double elapsedNanoseconds = (elapsedTicks / (double)Stopwatch.Frequency) * 1e9;
+            logger.LogDecisionTime(elapsedNanoseconds);
             CompleteTurn();
         }
     }
