@@ -1,12 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
     public PlayerAgent agent;
+    public TextMeshProUGUI healText;
     private Vector3 targetPosition;
     public Vector3 previousPosition;
     public Vector2 externalInput;
@@ -43,6 +45,7 @@ public class Player : MonoBehaviour
                 {
                     healCount = 2;
                     turnCounter = 0;
+                    healText.text = $"Uleczenia: {healCount}";
                 }
             }
 
@@ -50,33 +53,33 @@ public class Player : MonoBehaviour
             {
                 if (useExternalInput)
                 {
-                    agent.decisionTimer += Time.deltaTime;
-                    if (agent.decisionTimer >= agent.decisionTimeLimit)
-                    {
-                        Debug.Log("Decision timed out");
-                        agent.AddReward(-1f);
-                        agent.decisionTimer = 0f;
-                        agent.EndEpisode();
-                        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-                    }
-
-                    if (!isCombat)
-                    {
-                        agent.progressTimer += Time.deltaTime;
-                        if (agent.progressTimer >= agent.progressTimeLimit)
-                        {
-                            Debug.Log("Progress timed out");
-                            agent.AddReward(-0.5f);
-                            agent.progressTimer = 0f;
-                            agent.EndEpisode();
-                            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-                        }
-                    }
-                    agent.RequestDecision();
+                    // agent.decisionTimer += Time.deltaTime;
+                    // if (agent.decisionTimer >= agent.decisionTimeLimit)
+                    // {
+                    //     Debug.Log("Decision timed out");
+                    //     agent.AddReward(-1f);
+                    //     agent.decisionTimer = 0f;
+                    //     agent.EndEpisode();
+                    //     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    // }
+                    //
+                    // if (!isCombat)
+                    // {
+                    //     agent.progressTimer += Time.deltaTime;
+                    //     if (agent.progressTimer >= agent.progressTimeLimit)
+                    //     {
+                    //         Debug.Log("Progress timed out");
+                    //         agent.AddReward(-0.5f);
+                    //         agent.progressTimer = 0f;
+                    //         agent.EndEpisode();
+                    //         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    //     }
+                    // }
+                    // agent.RequestDecision();
                 }
                 else
                 {
-                    agent.RequestDecision();
+                    //agent.RequestDecision();
                     HandleMovementInput();
                 }
             }
@@ -183,17 +186,17 @@ public class Player : MonoBehaviour
         health -= damage;
         if (health <= 0)
         {
-            agent.AddReward(-0.5f);
-            agent.EndEpisode();
-            GameObject ally = GameObject.Find("Ally");
-            if (ally != null)
-            {
-                if (ally.GetComponent<CompanionAgent>().enabled)
-                {
-                    ally.GetComponent<CompanionAgent>().AddReward(-0.5f);
-                    ally.GetComponent<CompanionAgent>().EndEpisode();
-                }
-            }
+            // agent.AddReward(-0.5f);
+            // agent.EndEpisode();
+            // GameObject ally = GameObject.Find("Ally");
+            // if (ally != null)
+            // {
+            //     if (ally.GetComponent<CompanionAgent>().enabled)
+            //     {
+            //         ally.GetComponent<CompanionAgent>().AddReward(-0.5f);
+            //         ally.GetComponent<CompanionAgent>().EndEpisode();
+            //     }
+            // }
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);

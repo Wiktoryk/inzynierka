@@ -22,7 +22,6 @@ public class DungeonGenerator : MonoBehaviour
     public GameObject endRoomPrefab;
     public GameObject[] roomPrefabs;
     public GameObject[] noExitsPrefabs;
-    public float totalReward = 0;
     public int minRoomsBetweenStartAndEnd = 3;
     public bool generationDone = false;
     
@@ -401,26 +400,26 @@ public class DungeonGenerator : MonoBehaviour
                 ActivateExits(roomData);
                 if (roomData.RoomObject.name.Contains("end"))
                 {
-                    PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
-                    Player playerScript = player.GetComponent<Player>();
-                    float reward = 0;
-                    reward += (playerScript.health / (float)playerScript.maxHealth) * 0.7f;
-                    if (ally != null)
-                    {
-                        reward += 0.3f;
-                        CompanionAgent companionAgent = ally.GetComponent<CompanionAgent>();
-                        if (companionAgent.enabled)
-                        {
-                            float rewardAlly = 0;
-                            rewardAlly += reward;
-                            rewardAlly += (ally.GetComponent<CompanionAI_neural>().health / (float)ally.GetComponent<CompanionAI_neural>().maxHealth) * 0.3f;
-                            companionAgent.SetReward(rewardAlly);
-                        }
-                    }
-                    playerAgent.SetReward(reward);
-                    playerAgent.EndEpisode();
-                    //SceneManager.LoadScene("Scenes/WinScene");
-                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    // PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                    // Player playerScript = player.GetComponent<Player>();
+                    // float reward = 0;
+                    // reward += (playerScript.health / (float)playerScript.maxHealth) * 0.7f;
+                    // if (ally != null)
+                    // {
+                    //     reward += 0.3f;
+                    //     CompanionAgent companionAgent = ally.GetComponent<CompanionAgent>();
+                    //     if (companionAgent.enabled)
+                    //     {
+                    //         float rewardAlly = 0;
+                    //         rewardAlly += reward;
+                    //         rewardAlly += (ally.GetComponent<CompanionAI_neural>().health / (float)ally.GetComponent<CompanionAI_neural>().maxHealth) * 0.3f;
+                    //         companionAgent.SetReward(rewardAlly);
+                    //     }
+                    // }
+                    // playerAgent.SetReward(reward);
+                    // playerAgent.EndEpisode();
+                    SceneManager.LoadScene("Scenes/WinScene");
+                    // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 }
             }
         }
@@ -451,26 +450,26 @@ public class DungeonGenerator : MonoBehaviour
             Vector2Int nextRoomPosition = GetNextRoomPosition(CurrentRoomPosition, exitDirection);
             if (generatedRooms.ContainsKey(nextRoomPosition))
             {
-                Vector2Int endRoomPosition = generatedRooms.FirstOrDefault(room => room.Value.RoomObject.name.Contains("end")).Key;
-                int manhattanDistance = Math.Abs(nextRoomPosition.x - endRoomPosition.x) + Math.Abs(nextRoomPosition.y - endRoomPosition.y);
-                int manhattanDistanceCurrent = Math.Abs(CurrentRoomPosition.x - endRoomPosition.x) + Math.Abs(CurrentRoomPosition.y - endRoomPosition.y);
-                if (totalReward < 0.5f)
-                {
-                    if (manhattanDistance < manhattanDistanceCurrent && !generatedRooms[nextRoomPosition].IsCompleted &&
-                        manhattanDistance > 0)
-                    {
-                        PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
-                        playerAgent.AddReward(0.1f);
-                        totalReward += 0.1f;
-                    }
-                    else if (manhattanDistance == 1 && GetAllExits(nextRoomPosition).Contains(Vector2Int.right) &&
-                             !generatedRooms[nextRoomPosition].IsCompleted)
-                    {
-                        PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
-                        playerAgent.AddReward(0.1f);
-                        totalReward += 0.1f;
-                    }
-                }
+                // Vector2Int endRoomPosition = generatedRooms.FirstOrDefault(room => room.Value.RoomObject.name.Contains("end")).Key;
+                // int manhattanDistance = Math.Abs(nextRoomPosition.x - endRoomPosition.x) + Math.Abs(nextRoomPosition.y - endRoomPosition.y);
+                // int manhattanDistanceCurrent = Math.Abs(CurrentRoomPosition.x - endRoomPosition.x) + Math.Abs(CurrentRoomPosition.y - endRoomPosition.y);
+                // if (totalReward < 0.5f)
+                // {
+                //     if (manhattanDistance < manhattanDistanceCurrent && !generatedRooms[nextRoomPosition].IsCompleted &&
+                //         manhattanDistance > 0)
+                //     {
+                //         PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                //         playerAgent.AddReward(0.1f);
+                //         totalReward += 0.1f;
+                //     }
+                //     else if (manhattanDistance == 1 && GetAllExits(nextRoomPosition).Contains(Vector2Int.right) &&
+                //              !generatedRooms[nextRoomPosition].IsCompleted)
+                //     {
+                //         PlayerAgent playerAgent = player.GetComponent<PlayerAgent>();
+                //         playerAgent.AddReward(0.1f);
+                //         totalReward += 0.1f;
+                //     }
+                // }
 
                 Vector3 RoomDistance = generatedRooms[CurrentRoomPosition].RoomObject.transform.position - generatedRooms[nextRoomPosition].RoomObject.transform.position;
                 CurrentRoomPosition = nextRoomPosition;
@@ -506,13 +505,13 @@ public class DungeonGenerator : MonoBehaviour
                 GameObject ally = GameObject.FindGameObjectWithTag("Ally");
                 if (ally != null)
                 {
-                    if (ally.GetComponent<CompanionAgent>().enabled)
-                    {
-                        CompanionAgent companionAgent = ally.GetComponent<CompanionAgent>();
-                        var allyScript = ally.GetComponent<CompanionAI_neural>();
-                        companionAgent.AddReward(allyScript.health / (float)allyScript.maxHealth * 0.01f);
-                        companionAgent.AddReward(player.GetComponent<Player>().health / (float)player.GetComponent<Player>().maxHealth * 0.02f);
-                    }
+                    // if (ally.GetComponent<CompanionAgent>().enabled)
+                    // {
+                    //     CompanionAgent companionAgent = ally.GetComponent<CompanionAgent>();
+                    //     var allyScript = ally.GetComponent<CompanionAI_neural>();
+                    //     companionAgent.AddReward(allyScript.health / (float)allyScript.maxHealth * 0.01f);
+                    //     companionAgent.AddReward(player.GetComponent<Player>().health / (float)player.GetComponent<Player>().maxHealth * 0.02f);
+                    // }
 
                     ally.transform.position = nextRoomPositionV + displacement;
                     ally.transform.position += new Vector3(0, 0.64f, 0);

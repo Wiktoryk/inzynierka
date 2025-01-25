@@ -149,7 +149,7 @@ public class TurnManager : MonoBehaviour
     void SwitchTurns(TurnState nextTurn)
     {
         currentTurn = nextTurn;
-        //Thread.Sleep(300);
+        Thread.Sleep(300);
     }
     
     void UpdateTurnText()

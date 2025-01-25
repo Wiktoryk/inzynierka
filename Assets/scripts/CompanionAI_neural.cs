@@ -53,10 +53,11 @@ public class CompanionAI_neural : MonoBehaviour
             if (agent.decisionTimer >= agent.decisionTimeLimit)
             {
                 Debug.Log("Decision timed out");
-                agent.AddReward(-1f);
-                agent.decisionTimer = 0f;
-                agent.EndEpisode();
-                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                // agent.AddReward(-1f);
+                // agent.decisionTimer = 0f;
+                // agent.EndEpisode();
+                // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                CompleteTurn();
             }
             agent.RequestDecision();
             isBusy = false;
@@ -83,13 +84,13 @@ public class CompanionAI_neural : MonoBehaviour
             {
                 closestEnemy.GetComponent<EnemyAI>().TakeDamage(attackDamage);
                 movesLeft--;
-                agent.AddReward(attackDamage * 0.01f);
+                //agent.AddReward(attackDamage * 0.01f);
             }
             else
             {
                 closestEnemy.GetComponent<EnemyAI>().TakeDamage(rangedAttackDamage);
                 movesLeft--;
-                agent.AddReward(rangedAttackDamage * 0.01f);
+                //agent.AddReward(rangedAttackDamage * 0.01f);
             }
         }
     }
@@ -140,19 +141,19 @@ public class CompanionAI_neural : MonoBehaviour
         else
         {
             failedMoves.Clear();
-            if (!isCombat)
-            {
-                agent.AddReward(Vector3.Distance(transform.position, player.position) * -0.01f);
-            }
-            else
-            {
-                if (health < 30)
-                {
-                    GameObject closestEnemy = GameObject.FindGameObjectsWithTag("Enemy")
-                        .OrderBy(e => Vector3.Distance(e.transform.position, transform.position)).First();
-                    agent.AddReward(Vector3.Distance(transform.position, closestEnemy.transform.position) * 0.05f);
-                }
-            }
+            // if (!isCombat)
+            // {
+            //     agent.AddReward(Vector3.Distance(transform.position, player.position) * -0.01f);
+            // }
+            // else
+            // {
+            //     if (health < 30)
+            //     {
+            //         GameObject closestEnemy = GameObject.FindGameObjectsWithTag("Enemy")
+            //             .OrderBy(e => Vector3.Distance(e.transform.position, transform.position)).First();
+            //         agent.AddReward(Vector3.Distance(transform.position, closestEnemy.transform.position) * 0.05f);
+            //     }
+            // }
         }
     }
 
@@ -201,7 +202,7 @@ public class CompanionAI_neural : MonoBehaviour
         if (health <= 0)
         {
             Destroy(gameObject);
-            agent.AddReward(-0.5f);
+            //agent.AddReward(-0.5f);
         }
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);
     }

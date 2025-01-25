@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class Combat : MonoBehaviour
 {
     public GameObject player;
     public GameObject ally;
+    public TextMeshProUGUI healText;
     
     void Start()
     {
@@ -136,5 +138,6 @@ public class Combat : MonoBehaviour
                 }
             }
         }
+        healText.text = "Uleczenia: " + playerScript.healCount;
     }
 }
