@@ -393,6 +393,10 @@ public class DungeonGenerator : MonoBehaviour
                     {
                         ally.GetComponent<CompanionAI_CEM>().isCombat = false;
                     }
+                    else if (ally.GetComponent<CompanionAI_neural>().enabled)
+                    {
+                        ally.GetComponent<CompanionAI_neural>().isCombat = false;
+                    }
                 }
                 ActivateExits(roomData);
                 if (roomData.RoomObject.name.Contains("end"))
@@ -404,6 +408,14 @@ public class DungeonGenerator : MonoBehaviour
                     if (ally != null)
                     {
                         reward += 0.3f;
+                        CompanionAgent companionAgent = ally.GetComponent<CompanionAgent>();
+                        if (companionAgent.enabled)
+                        {
+                            float rewardAlly = 0;
+                            rewardAlly += reward;
+                            rewardAlly += (ally.GetComponent<CompanionAI_neural>().health / (float)ally.GetComponent<CompanionAI_neural>().maxHealth) * 0.3f;
+                            companionAgent.SetReward(rewardAlly);
+                        }
                     }
                     playerAgent.SetReward(reward);
                     playerAgent.EndEpisode();
@@ -494,6 +506,14 @@ public class DungeonGenerator : MonoBehaviour
                 GameObject ally = GameObject.FindGameObjectWithTag("Ally");
                 if (ally != null)
                 {
+                    if (ally.GetComponent<CompanionAgent>().enabled)
+                    {
+                        CompanionAgent companionAgent = ally.GetComponent<CompanionAgent>();
+                        var allyScript = ally.GetComponent<CompanionAI_neural>();
+                        companionAgent.AddReward(allyScript.health / (float)allyScript.maxHealth * 0.01f);
+                        companionAgent.AddReward(player.GetComponent<Player>().health / (float)player.GetComponent<Player>().maxHealth * 0.02f);
+                    }
+
                     ally.transform.position = nextRoomPositionV + displacement;
                     ally.transform.position += new Vector3(0, 0.64f, 0);
                     if (ally.GetComponent<CompanionAI_FSM>().enabled)
@@ -506,11 +526,11 @@ public class DungeonGenerator : MonoBehaviour
                         ally.GetComponent<CompanionAI_CEM>().startingPosition = ally.transform.position;
                         ally.GetComponent<CompanionAI_CEM>().targetPosition = ally.transform.position;
                     }
-                    // else if (ally.GetComponent<CompanionAI_neural>().enabled)
-                    // {
-                    //     ally.GetComponent<CompanionAI_neural>().startingPosition = ally.transform.position;
-                    //     ally.GetComponent<CompanionAI_neural>().targetPosition = ally.transform.position;
-                    // }
+                    else if (ally.GetComponent<CompanionAI_neural>().enabled)
+                    {
+                        ally.GetComponent<CompanionAI_neural>().startingPosition = ally.transform.position;
+                        ally.GetComponent<CompanionAI_neural>().targetPosition = ally.transform.position;
+                    }
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().UpdatePosition();
                 }
 
@@ -526,6 +546,10 @@ public class DungeonGenerator : MonoBehaviour
                         else if (ally.GetComponent<CompanionAI_CEM>().enabled)
                         {
                             ally.GetComponent<CompanionAI_CEM>().isCombat = true;
+                        }
+                        else if (ally.GetComponent<CompanionAI_neural>().enabled)
+                        {
+                            ally.GetComponent<CompanionAI_neural>().isCombat = true;
                         }
                     }
                     if (generatedRooms[nextRoomPosition].RoomObject.name.Contains("end"))

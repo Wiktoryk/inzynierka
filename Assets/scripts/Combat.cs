@@ -56,8 +56,16 @@ public class Combat : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.F))
         {
-            GameObject closestEnemy = GameObject.FindGameObjectsWithTag("Enemy").OrderBy(e => Vector3.Distance(e.transform.position, player.transform.position)).First();
-            PerformCombat(closestEnemy);
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            if (enemies.Length == 0)
+            {
+                return;
+            }
+            GameObject closestEnemy = enemies.OrderBy(e => Vector3.Distance(e.transform.position, player.transform.position)).First();
+            if (closestEnemy != null)
+            {
+                PerformCombat(closestEnemy);
+            }
         }
     }
 
@@ -120,8 +128,8 @@ public class Combat : MonoBehaviour
                 else
                 {
                     CompanionAI_neural allyScript = ally.GetComponent<CompanionAI_neural>();
-                    //allyScript.health += playerScript.healAmount;
-                    //allyScript.health = (allyScript.health > allyScript.maxHealth) ? allyScript.maxHealth : allyScript.health;
+                    allyScript.health += playerScript.healAmount;
+                    allyScript.health = (allyScript.health > allyScript.maxHealth) ? allyScript.maxHealth : allyScript.health;
                     ally.transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(allyScript);
                     player.GetComponent<Player>().movesLeft--;
                     player.GetComponent<Player>().healCount--;

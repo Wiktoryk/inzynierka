@@ -132,9 +132,13 @@ public class EnemyAI : MonoBehaviour
                 {
                     companion.GetComponent<CompanionAI_FSM>().TakeDamage(attackDamage);
                 }
-                else
+                else if (companion.GetComponent<CompanionAI_CEM>().enabled)
                 {
                     companion.GetComponent<CompanionAI_CEM>().TakeDamage(attackDamage);
+                }
+                else
+                {
+                    companion.GetComponent<CompanionAI_neural>().TakeDamage(attackDamage);
                 }
 
                 currentState = EnemyState.Idle;

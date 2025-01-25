@@ -30,11 +30,20 @@ public class PlayerAgent : Agent
         sensor.AddObservation(HumanPlayer.isCombat);
         sensor.AddObservation(HumanPlayer.useExternalInput);
         sensor.AddObservation(HumanPlayer.movesLeft / 2f);
-        if (GameObject.Find("Ally") != null)
+        GameObject ally = GameObject.Find("Ally");
+        if (ally != null)
         {
-            sensor.AddObservation(GameObject.Find("Ally").transform.position / 60f);
-            var allyScript = GameObject.Find("Ally").GetComponent<CompanionAI_FSM>();
-            sensor.AddObservation(allyScript.health / (float)allyScript.maxHealth);
+            sensor.AddObservation(ally.transform.position / 60f);
+            if (ally.GetComponent<CompanionAI_FSM>().enabled)
+            {
+                var allyScript = GameObject.Find("Ally").GetComponent<CompanionAI_FSM>();
+                sensor.AddObservation(allyScript.health / (float)allyScript.maxHealth);
+            }
+            else if (ally.GetComponent<CompanionAI_neural>().enabled)
+            {
+                var allyScript = GameObject.Find("Ally").GetComponent<CompanionAI_neural>();
+                sensor.AddObservation(allyScript.health / (float)allyScript.maxHealth);
+            }
         }
         else
         {

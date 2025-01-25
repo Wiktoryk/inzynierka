@@ -3458,7 +3458,7 @@ MonoBehaviour:
   healAmount: 10
   turnCounter: 0
   isCombat: 1
-  useExternalInput: 1
+  useExternalInput: 0
 --- !u!61 &330656360
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -3546,9 +3546,9 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: e6905ab741073a74880a658583814a3f, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 0
+  m_BehaviorType: 2
   m_BehaviorName: My Behavior
   TeamId: 0
   m_UseChildSensors: 1
@@ -3568,7 +3568,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Record: 0
   NumStepsToRecord: 0
-  DemonstrationName: test
+  DemonstrationName: demo
   DemonstrationDirectory: 
 --- !u!1 &345409677
 GameObject:
@@ -6839,6 +6839,8 @@ GameObject:
   - component: {fileID: 651719966}
   - component: {fileID: 651719972}
   - component: {fileID: 651719971}
+  - component: {fileID: 651719973}
+  - component: {fileID: 651719974}
   m_Layer: 0
   m_Name: Ally
   m_TagString: Ally
@@ -6853,7 +6855,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 651719965}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3fdd6854db16fd40a68835885ba6fc0, type: 3}
   m_Name: 
@@ -6999,11 +7001,31 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 651719965}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 564b0515cc064d64fbde18e74fec9459, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  agent: {fileID: 0}
+  player: {fileID: 330656358}
+  startingPosition: {x: 0, y: 0, z: 0}
+  targetPosition: {x: 0, y: 0, z: 0}
+  moveDistance: 0.64
+  attackRange: 1
+  rangedAttackRange: 2
+  isTurnComplete: 0
+  health: 60
+  maxHealth: 60
+  movesLeft: 2
+  previousMovesLeft: 2
+  attackDamage: 10
+  rangedAttackDamage: 5
+  healCount: 2
+  healAmount: 10
+  turnCounter: 0
+  isTurn: 0
+  isCombat: 1
+  dmgDealt: 0
 --- !u!114 &651719972
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7019,6 +7041,8 @@ MonoBehaviour:
   enemies: []
   player: {fileID: 330656358}
   HealTarget: {fileID: 0}
+  targetPosition: {x: 0, y: 0, z: 0}
+  startingPosition: {x: 0, y: 0, z: 0}
   moveSpeed: 15
   followDistance: 1.5
   attackRange: 1
@@ -7031,10 +7055,58 @@ MonoBehaviour:
   turnCounter: 0
   isTurnComplete: 0
   isTurn: 0
-  health: 50
-  maxHealth: 50
+  health: 60
+  maxHealth: 60
   isCombat: 1
   currentState: 0
+--- !u!114 &651719973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 651719965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6152fb87f49cffc4baa3a9ee56c2946a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 0
+  decisionTimeLimit: 5
+  decisionTimer: 0
+--- !u!114 &651719974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 651719965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d1c4e0b1822b495aa52bc52839ecb30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_BrainParameters:
+    VectorObservationSize: 28
+    NumStackedVectorObservations: 1
+    m_ActionSpec:
+      m_NumContinuousActions: 0
+      BranchSizes: 0400000003000000
+    VectorActionSize: 0400000003000000
+    VectorActionDescriptions: []
+    VectorActionSpaceType: 0
+    hasUpgradedBrainParametersWithActionSpec: 1
+  m_Model: {fileID: 5022602860645237092, guid: b6d01ba0601e6074a88d059794de0042, type: 3}
+  m_InferenceDevice: 0
+  m_BehaviorType: 2
+  m_BehaviorName: CompanionBehavior
+  TeamId: 0
+  m_UseChildSensors: 1
+  m_UseChildActuators: 1
+  m_ObservableAttributeHandling: 0
 --- !u!1 &660685188
 GameObject:
   m_ObjectHideFlags: 0

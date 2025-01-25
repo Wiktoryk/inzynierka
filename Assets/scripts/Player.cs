@@ -185,7 +185,15 @@ public class Player : MonoBehaviour
         {
             agent.AddReward(-0.5f);
             agent.EndEpisode();
-            //StartCoroutine(RestartAfterDelay());
+            GameObject ally = GameObject.Find("Ally");
+            if (ally != null)
+            {
+                if (ally.GetComponent<CompanionAgent>().enabled)
+                {
+                    ally.GetComponent<CompanionAgent>().AddReward(-0.5f);
+                    ally.GetComponent<CompanionAgent>().EndEpisode();
+                }
+            }
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
         transform.GetChild(0).GetComponent<healthDisplay>().updateHealth(this);

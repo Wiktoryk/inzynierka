@@ -74,11 +74,9 @@ crashlytics-build.properties
 
 /venv/
 /Assets/Demonstrations
-/results/test/My Behavior
-/results/test2/run_logs
-/results/test2/My Behavior
 /player-learn
-/results/player/My Behavior
-/results/player/run_logs
-/results/playeragent/My Behavior
-/results/playeragent/run_logs
+/player-test
+/comp-learn
+/comp-learn2
+/results/*/run_logs
+/results/*/*Behavior

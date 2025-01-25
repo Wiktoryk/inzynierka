@@ -92,6 +92,17 @@ public class TurnManager : MonoBehaviour
                 SwitchTurns(TurnState.EnemyTurn);
             }
         }
+        else if (companion.GetComponent<CompanionAI_neural>().enabled)
+        {
+            companion.GetComponent<CompanionAI_neural>().isTurn = true;
+            companion.GetComponent<CompanionAI_neural>().PerformActions();
+            if (companion.GetComponent<CompanionAI_neural>().isTurnComplete)
+            {
+                companion.GetComponent<CompanionAI_neural>().isTurnComplete = false;
+                companion.GetComponent<CompanionAI_neural>().isTurn = false;
+                SwitchTurns(TurnState.EnemyTurn);
+            }
+        }
     }
     
     void HandleEnemyTurn()
@@ -138,7 +149,7 @@ public class TurnManager : MonoBehaviour
     void SwitchTurns(TurnState nextTurn)
     {
         currentTurn = nextTurn;
-        Thread.Sleep(300);
+        //Thread.Sleep(300);
     }
     
     void UpdateTurnText()
